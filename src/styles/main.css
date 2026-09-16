@@ -444,15 +444,15 @@ p {
 
 /* Dashboard Móvil Moderno */
 .dashboard-hero {
-  background: linear-gradient(135deg, var(--color-primary-900) 0%, var(--color-primary-800) 100%);
+  background: linear-gradient(135deg, #102a71 0%, #1d3a8f 50%, #2851b3 100%);
   border-radius: var(--radius-xl);
   padding: 1.5rem 1.25rem;
   color: var(--color-white);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 8px 24px -4px rgba(29, 58, 143, 0.35);
   margin-bottom: 1.25rem;
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .dashboard-hero::after {
@@ -460,10 +460,10 @@ p {
   position: absolute;
   top: -30px;
   right: -30px;
-  width: 120px;
-  height: 120px;
+  width: 130px;
+  height: 130px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
   pointer-events: none;
 }
 
@@ -473,7 +473,7 @@ p {
   gap: 0.35rem;
   padding: 0.25rem 0.65rem;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.2);
   color: var(--color-white);
   font-size: 0.725rem;
   font-weight: 700;
@@ -492,14 +492,14 @@ p {
 
 .dashboard-hero-desc {
   font-size: 0.8125rem;
-  color: var(--color-primary-100);
+  color: rgba(255, 255, 255, 0.9);
   margin-bottom: 1.25rem;
   line-height: 1.4;
 }
 
 .dashboard-hero-btn {
   background-color: var(--color-white);
-  color: var(--color-primary-900);
+  color: var(--color-primary-700);
   font-weight: 700;
   font-size: 0.9375rem;
   padding: 0.875rem 1.25rem;
@@ -510,7 +510,7 @@ p {
   gap: 0.5rem;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 14px rgba(16, 42, 113, 0.25);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
   width: 100%;
 }
