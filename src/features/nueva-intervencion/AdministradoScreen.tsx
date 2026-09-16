@@ -119,24 +119,27 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
           deshabilitarVolver={guardando}
         />
 
-        <div className="card card--warning">
-          <div className="alert alert-warning">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
+        <div className="card">
+          <div className="saneamiento-notice">
+            <div className="saneamiento-notice-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
             <div>
-              <div style={{ fontWeight: 600 }}>Pendiente de saneamiento legal</div>
-              <div style={{ fontSize: '0.8125rem' }}>
-                La intervención continuará el proceso. Quedará marcada para regularización en gabinete.
+              <div className="saneamiento-notice-title">Pendiente de saneamiento legal</div>
+              <div className="saneamiento-notice-desc">
+                La intervención continuará el proceso y quedará marcada para regularización en gabinete.
               </div>
             </div>
           </div>
 
-          <label className="form-label form-label-required" style={{ marginBottom: '0.75rem' }}>
-            Selecciona el motivo de no identificación:
-          </label>
+          <div className="section-label">
+            <span>Selecciona el motivo de no identificación</span>
+            <span className="section-label-required">*</span>
+          </div>
 
           <div className="options-grid">
             {MOTIVOS.map((opcion) => {
