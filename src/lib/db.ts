@@ -170,6 +170,8 @@ export interface NotificacionCargoLocal {
   baseCalculo: BaseCalculo;
   montoPasibleMulta?: number; // NULLABLE A PROPÓSITO, igual que en Prisma
   medidaComplementaria?: string;
+  // Opcional: solo aplica a infracciones con un vehículo involucrado.
+  placaRodaje?: string;
   fechaDeteccion: string; // heredada de Intervencion.fechaHoraInicio — cero doble digitación
   // NULLABLE A PROPÓSITO — HU-21 lo llena cuando se responde "¿se entregó
   // en el acto?". Si la respuesta es "No", fechaNotificacion queda vacía
@@ -221,6 +223,7 @@ export interface ActaMedidaProvisionalLocal {
   tipoMedida: 'CLAUSURA' | 'PARALIZACION';
   descripcion?: string;
   lugarEjecucion?: string;
+  observacionesAdministrado?: string;
   creadoEn: string;
 }
 

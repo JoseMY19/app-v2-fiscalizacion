@@ -126,6 +126,7 @@ export async function rehidratarDesdeServidor(bundle: BundleIntervencion): Promi
           baseCalculo: nc.baseCalculo as BaseCalculo,
           montoPasibleMulta: nc.montoPasibleMulta,
           medidaComplementaria: nc.medidaComplementaria,
+          placaRodaje: nc.placaRodaje,
           fechaDeteccion: nc.fechaDeteccion,
           fechaNotificacion: nc.fechaNotificacion,
           modoNotificacion: nc.modoNotificacion as ModoNotificacion | undefined,

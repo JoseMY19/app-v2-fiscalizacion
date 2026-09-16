@@ -39,6 +39,7 @@ export default function NotificacionCargoScreen({ localId, onGuardada, onVolver 
   );
   const [numeroCorrelativo, setNumeroCorrelativo] = useState('');
   const [medidaComplementaria, setMedidaComplementaria] = useState('');
+  const [placaRodaje, setPlacaRodaje] = useState('');
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tieneFotoActa, setTieneFotoActa] = useState(false);
@@ -59,6 +60,7 @@ export default function NotificacionCargoScreen({ localId, onGuardada, onVolver 
       if (!nc) return;
       setNumeroCorrelativo(nc.numeroCorrelativo);
       setMedidaComplementaria(nc.medidaComplementaria ?? '');
+      setPlacaRodaje(nc.placaRodaje ?? '');
     });
   }, [localId]);
 
@@ -81,6 +83,7 @@ export default function NotificacionCargoScreen({ localId, onGuardada, onVolver 
         baseCalculo: resultadoCalculo.baseCalculo,
         montoPasibleMulta: resultadoCalculo.monto,
         medidaComplementaria,
+        placaRodaje,
       });
       onGuardada();
     } catch (e) {
@@ -132,7 +135,7 @@ export default function NotificacionCargoScreen({ localId, onGuardada, onVolver 
           />
         )}
 
-        <div className="form-group" style={{ marginBottom: 0 }}>
+        <div className="form-group">
           <label className="form-label">
             Medida complementaria sugerida (opcional)
           </label>
@@ -142,6 +145,17 @@ export default function NotificacionCargoScreen({ localId, onGuardada, onVolver 
             value={medidaComplementaria}
             onChange={(e) => setMedidaComplementaria(e.target.value)}
             placeholder="Ej. Clausura temporal, decomiso o demolición"
+          />
+        </div>
+
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label">Placa de rodaje (solo si aplica)</label>
+          <input
+            type="text"
+            className="form-input"
+            value={placaRodaje}
+            onChange={(e) => setPlacaRodaje(e.target.value.toUpperCase())}
+            placeholder="Ej. ABC-123"
           />
         </div>
 

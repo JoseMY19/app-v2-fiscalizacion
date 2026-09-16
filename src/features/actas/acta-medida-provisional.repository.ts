@@ -5,6 +5,7 @@ export interface DatosActaMedidaProvisional {
   tipoMedida: 'CLAUSURA' | 'PARALIZACION';
   descripcion?: string;
   lugarEjecucion?: string;
+  observacionesAdministrado?: string;
 }
 
 /** HU-14: no es 1:1 — una intervención puede tener más de una medida provisional. */
@@ -18,6 +19,7 @@ export async function guardarActaMedidaProvisional(
     tipoMedida: datos.tipoMedida,
     descripcion: datos.descripcion?.trim() || undefined,
     lugarEjecucion: datos.lugarEjecucion?.trim() || undefined,
+    observacionesAdministrado: datos.observacionesAdministrado?.trim() || undefined,
     creadoEn: new Date().toISOString(),
   };
   return db.actasMedidaProvisional.add(registro);

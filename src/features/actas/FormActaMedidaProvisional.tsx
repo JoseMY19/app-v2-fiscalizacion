@@ -28,6 +28,7 @@ export default function FormActaMedidaProvisional({ localId, onGuardada }: Props
   const [tipoMedida, setTipoMedida] = useState<'CLAUSURA' | 'PARALIZACION' | null>(null);
   const [descripcion, setDescripcion] = useState('');
   const [lugarEjecucion, setLugarEjecucion] = useState('');
+  const [observacionesAdministrado, setObservacionesAdministrado] = useState('');
   const [guardando, setGuardando] = useState(false);
 
   const estadoCorrelativo = useVerificacionCorrelativo(TipoActa.MEDIDA_PROVISIONAL, numeroCorrelativo, localId);
@@ -37,11 +38,18 @@ export default function FormActaMedidaProvisional({ localId, onGuardada }: Props
     if (!puedeGuardar || !tipoMedida || guardando) return;
     setGuardando(true);
     try {
-      await guardarActaMedidaProvisional(localId, { numeroCorrelativo, tipoMedida, descripcion, lugarEjecucion });
+      await guardarActaMedidaProvisional(localId, {
+        numeroCorrelativo,
+        tipoMedida,
+        descripcion,
+        lugarEjecucion,
+        observacionesAdministrado,
+      });
       setNumeroCorrelativo('');
       setTipoMedida(null);
       setDescripcion('');
       setLugarEjecucion('');
+      setObservacionesAdministrado('');
       onGuardada();
     } finally {
       setGuardando(false);
@@ -97,6 +105,17 @@ export default function FormActaMedidaProvisional({ localId, onGuardada }: Props
           value={lugarEjecucion}
           onChange={(e) => setLugarEjecucion(e.target.value)}
           placeholder="Ej. Puerta de acceso principal"
+        />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Observaciones formuladas por el administrado (opcional)</label>
+        <textarea
+          className="form-textarea"
+          value={observacionesAdministrado}
+          onChange={(e) => setObservacionesAdministrado(e.target.value)}
+          rows={2}
+          placeholder="Lo que manifiesta el administrado al momento de ejecutar la medida..."
         />
       </div>
 

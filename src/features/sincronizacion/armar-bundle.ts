@@ -53,6 +53,7 @@ export interface BundleIntervencion {
     baseCalculo: string;
     montoPasibleMulta?: number;
     medidaComplementaria?: string;
+    placaRodaje?: string;
     fechaDeteccion: string;
     fechaNotificacion?: string;
     modoNotificacion?: string;
@@ -72,6 +73,7 @@ export interface BundleIntervencion {
     tipoMedida: string;
     descripcion?: string;
     lugarEjecucion?: string;
+    observacionesAdministrado?: string;
   }[];
   actasValorizacionObra: { numeroCorrelativo: string; estadoObra?: string }[];
   actasAdicionales: { tipo: string; numeroCorrelativo: string; detalle?: string }[];
@@ -155,6 +157,7 @@ export async function armarBundle(intervencionLocalId: string): Promise<BundleIn
           baseCalculo: notificacionCargo.baseCalculo,
           montoPasibleMulta: notificacionCargo.montoPasibleMulta,
           medidaComplementaria: notificacionCargo.medidaComplementaria,
+          placaRodaje: notificacionCargo.placaRodaje,
           fechaDeteccion: notificacionCargo.fechaDeteccion,
           fechaNotificacion: notificacionCargo.fechaNotificacion,
           modoNotificacion: notificacionCargo.modoNotificacion,
@@ -175,6 +178,7 @@ export async function armarBundle(intervencionLocalId: string): Promise<BundleIn
       tipoMedida: m.tipoMedida,
       descripcion: m.descripcion,
       lugarEjecucion: m.lugarEjecucion,
+      observacionesAdministrado: m.observacionesAdministrado,
     })),
     actasValorizacionObra: valorizaciones.map((v) => ({ numeroCorrelativo: v.numeroCorrelativo, estadoObra: v.estadoObra })),
     actasAdicionales: adicionales.map((a) => ({ tipo: a.tipo, numeroCorrelativo: a.numeroCorrelativo, detalle: a.detalle })),

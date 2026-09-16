@@ -160,47 +160,21 @@ export default function App() {
       <MisTramitesScreen onVolver={() => setVista({ nombre: 'inicio' })} />
     ) : (
       <div className="app-container">
-        {/* Banner de bienvenida / Inicio */}
-        <div style={{ marginBottom: '1.25rem' }}>
-          <h1 style={{ fontSize: '1.25rem', color: 'var(--color-primary-900)', marginBottom: '0.25rem' }}>
-            Panel de Operaciones de Campo
-          </h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: 0 }}>
-            San Juan de Lurigancho · Registro de intervenciones
-          </p>
-        </div>
-
-        {/* Tarjeta Principal: Nueva Intervención */}
-        <div className="card card--highlight" style={{ padding: '1.5rem', marginBottom: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', marginBottom: '1rem' }}>
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--color-primary-50)',
-                color: 'var(--color-primary-600)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-            </div>
-            <div>
-              <h2 style={{ fontSize: '1.125rem', marginBottom: '0.2rem' }}>Registrar Intervención</h2>
-              <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginBottom: 0 }}>
-                Captura GPS, datos del administrado, actas, fotos y firma en campo.
-              </p>
-            </div>
+        {/* Tarjeta Hero Principal: Nueva Intervención */}
+        <div className="dashboard-hero">
+          <div className="dashboard-hero-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="12" r="10" />
+            </svg>
+            <span>MDSJL · En Operación</span>
           </div>
-
+          <h2 className="dashboard-hero-title">Nueva Fiscalización</h2>
+          <p className="dashboard-hero-desc">
+            Captura GPS, datos del administrado, actas correspondientes, evidencias fotográficas y firma digital.
+          </p>
           <button
             type="button"
-            className="btn btn-primary btn-block btn-lg"
+            className="dashboard-hero-btn"
             onClick={() => setVista({ nombre: 'nueva-intervencion' })}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -210,111 +184,139 @@ export default function App() {
           </button>
         </div>
 
-        {/* Tarjeta de Estado de Sincronización */}
-        <div className="card" style={{ marginBottom: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-            <h3 style={{ fontSize: '0.9375rem', margin: 0, color: 'var(--color-text-title)' }}>
-              Estado de Sincronización
-            </h3>
-            <span className={`badge ${pendientes > 0 ? 'badge-warning' : 'badge-success'}`}>
-              {pendientes > 0 ? `${pendientes} pendiente(s)` : 'Al día'}
-            </span>
-          </div>
-
-          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.875rem' }}>
-            {pendientes > 0
-              ? `Hay ${pendientes} intervención(es) almacenada(s) localmente pendientes de enviar a la central.`
-              : 'Todas las intervenciones locales han sido sincronizadas correctamente con el servidor.'}
-          </p>
-
+        {/* Grilla 2x2 de Indicadores Rápidos */}
+        <div className="dashboard-kpi-grid">
+          {/* KPI 1: Sincronización */}
           <button
             type="button"
-            className="btn btn-outline btn-block"
+            className="dashboard-kpi-card"
             onClick={handleSincronizarAhora}
             disabled={sincronizando}
+            title="Tocar para forzar sincronización"
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              style={{ animation: sincronizando ? 'spin 1s linear infinite' : 'none' }}
-            >
-              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
-            </svg>
-            <span>{sincronizando ? 'Sincronizando ahora…' : 'Sincronizar ahora'}</span>
+            <div className="dashboard-kpi-icon">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                style={{ animation: sincronizando ? 'spin 1s linear infinite' : 'none' }}
+              >
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+              </svg>
+            </div>
+            <div>
+              <div className="dashboard-kpi-title">Sincronización</div>
+              <div className="dashboard-kpi-value" style={{ color: pendientes > 0 ? 'var(--color-warning)' : 'var(--color-success)' }}>
+                {pendientes > 0 ? `${pendientes} pend.` : 'Al día'}
+              </div>
+              <div className="dashboard-kpi-sub">
+                {sincronizando ? 'Sincronizando…' : pendientes > 0 ? 'Tocar para enviar' : 'Sin pendientes'}
+              </div>
+            </div>
           </button>
-        </div>
 
-        {/* Tarjeta de Mis Trámites: visibilidad del estado en oficina, siempre disponible */}
-        <div className="card" style={{ marginBottom: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <h3 style={{ fontSize: '0.9375rem', margin: 0, color: 'var(--color-text-title)' }}>Mis Trámites</h3>
-          </div>
-          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.875rem' }}>
-            Revisa en qué va cada intervención que ya sincronizaste (validación, instrucción, resolución).
-          </p>
+          {/* KPI 2: Intervenciones Observadas */}
           <button
             type="button"
-            className="btn btn-outline btn-block"
-            onClick={() => setVista({ nombre: 'mis-tramites' })}
+            className="dashboard-kpi-card"
+            onClick={() => setVista({ nombre: 'observadas' })}
+            style={{
+              borderColor: observadasCount && observadasCount > 0 ? 'var(--color-warning)' : undefined,
+              backgroundColor: observadasCount && observadasCount > 0 ? 'var(--color-warning-bg)' : undefined,
+            }}
           >
-            <span>Ver mis trámites</span>
+            <div
+              className="dashboard-kpi-icon"
+              style={{
+                backgroundColor: observadasCount && observadasCount > 0 ? 'var(--color-warning)' : undefined,
+                color: observadasCount && observadasCount > 0 ? '#ffffff' : undefined,
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
+            <div>
+              <div className="dashboard-kpi-title">Observadas</div>
+              <div
+                className="dashboard-kpi-value"
+                style={{ color: observadasCount && observadasCount > 0 ? 'var(--color-warning)' : 'var(--color-text-title)' }}
+              >
+                {observadasCount !== null ? `${observadasCount} por corregir` : '0'}
+              </div>
+              <div className="dashboard-kpi-sub">
+                {observadasCount && observadasCount > 0 ? 'Tocar para revisar' : 'Todo conforme'}
+              </div>
+            </div>
           </button>
         </div>
 
-        {/* Tarjeta de Intervenciones Observadas (V-01/V-02) */}
-        {observadasCount !== null && observadasCount > 0 && (
-          <div className="card" style={{ marginBottom: '1.25rem', borderLeft: '4px solid var(--color-warning, #d97706)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <h3 style={{ fontSize: '0.9375rem', margin: 0, color: 'var(--color-text-title)' }}>
-                Intervenciones Observadas
-              </h3>
-              <span className="badge badge-warning">{observadasCount} pendiente(s)</span>
-            </div>
-            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.875rem' }}>
-              El validador de oficina devolvió {observadasCount} intervención(es) para corrección.
-            </p>
-            <button
-              type="button"
-              className="btn btn-outline btn-block"
-              onClick={() => setVista({ nombre: 'observadas' })}
-            >
-              <span>Ver y corregir</span>
-            </button>
-          </div>
-        )}
+        {/* Menú de Gestión Móvil */}
+        <div className="menu-group">
+          <div className="menu-group-header">Gestión y Expedientes</div>
 
-        {/* Tarjeta de Última Intervención (si existe) */}
-        {ultimaIntervencion && (
-          <div className="card" style={{ borderLeft: '4px solid var(--color-success)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted)', fontWeight: 600 }}>
-                Última intervención guardada
-              </span>
-              <span className="badge badge-neutral">ID: {ultimaIntervencion.localId.slice(0, 8)}</span>
+          <button
+            type="button"
+            className="menu-item"
+            onClick={() => setVista({ nombre: 'mis-tramites' })}
+          >
+            <div className="menu-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+              </svg>
             </div>
+            <div className="menu-item-content">
+              <div className="menu-item-title">Mis Trámites</div>
+              <div className="menu-item-desc">Consulta el estado en oficina de tus actas enviadas</div>
+            </div>
+            <div className="menu-item-arrow">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </div>
+          </button>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginTop: '0.25rem' }}>
-              <span className={`badge ${ultimaIntervencion.identificado ? 'badge-success' : 'badge-warning'}`}>
-                {ultimaIntervencion.identificado ? 'Administrado identificado' : '⚠ Pendiente de saneamiento'}
-              </span>
-              <span className="badge badge-primary">
-                {TITULO_CAMINO[ultimaIntervencion.camino] ?? ultimaIntervencion.camino}
-              </span>
-              <span className="badge badge-neutral">
-                Lista para sincronizar
-              </span>
+          {ultimaIntervencion && (
+            <div className="menu-item" style={{ cursor: 'default' }}>
+              <div className="menu-item-icon" style={{ backgroundColor: 'var(--color-success-bg)', color: 'var(--color-success)' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+              </div>
+              <div className="menu-item-content">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.125rem' }}>
+                  <span className="menu-item-title" style={{ margin: 0 }}>Última intervención</span>
+                  <span className="badge badge-neutral" style={{ fontSize: '0.6875rem' }}>
+                    #{ultimaIntervencion.localId.slice(0, 6)}
+                  </span>
+                </div>
+                <div className="menu-item-desc">
+                  {TITULO_CAMINO[ultimaIntervencion.camino] ?? ultimaIntervencion.camino} · {ultimaIntervencion.identificado ? 'Identificado' : 'Saneamiento'}
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     );
 
   return (
     <div className="app-shell">
+      {/* Esquinas decorativas oficiales MDSJL */}
+      <div className="bg-decorations-wrapper">
+        <div className="bg-corner-top" />
+        <div className="bg-corner-bottom" />
+      </div>
+
       <AppHeader
         pendientes={pendientes}
         sincronizando={sincronizando}

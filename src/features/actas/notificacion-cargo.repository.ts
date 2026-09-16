@@ -11,6 +11,7 @@ export interface DatosNotificacionCargo {
   baseCalculo: BaseCalculo;
   montoPasibleMulta: number | null;
   medidaComplementaria?: string;
+  placaRodaje?: string;
 }
 
 export async function guardarNotificacionCargo(intervencionLocalId: string, datos: DatosNotificacionCargo): Promise<void> {
@@ -25,6 +26,7 @@ export async function guardarNotificacionCargo(intervencionLocalId: string, dato
     baseCalculo: datos.baseCalculo,
     montoPasibleMulta: datos.montoPasibleMulta ?? undefined,
     medidaComplementaria: datos.medidaComplementaria?.trim() || undefined,
+    placaRodaje: datos.placaRodaje?.trim() || undefined,
     fechaDeteccion: intervencion.fechaHoraInicio.slice(0, 10),
     creadoEn: new Date().toISOString(),
   };

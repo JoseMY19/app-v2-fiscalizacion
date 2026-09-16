@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import logoWhite from '../assets/logo-sjl-white.webp';
 
 interface Props {
   pendientes?: number;
@@ -30,15 +31,21 @@ export default function AppHeader({
     <header className="header-bar">
       <div className="header-content">
         <div className="header-brand">
-          <div className="header-logo-badge" title="MDSJL">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
-          </div>
-          <div className="header-titles">
-            <span className="header-title">PAS · Fiscalización SJL</span>
-            <span className="header-subtitle">
-              {fiscalizadorDni ? `Insp. ${fiscalizadorDni}` : 'MDSJL Campo'}
+          <img
+            src={logoWhite}
+            alt="San Juan de Lurigancho"
+            style={{
+              height: 28,
+              width: 'auto',
+              maxHeight: 32,
+              objectFit: 'contain',
+              display: 'block',
+            }}
+          />
+          <div className="header-titles" style={{ borderLeft: '1px solid rgba(255,255,255,0.2)', paddingLeft: '0.625rem', marginLeft: '0.25rem' }}>
+            <span className="header-title" style={{ fontSize: '0.8125rem' }}>Fiscalización</span>
+            <span className="header-subtitle" style={{ fontSize: '0.65rem' }}>
+              {fiscalizadorDni ? `Insp. ${fiscalizadorDni}` : 'Campo'}
             </span>
           </div>
         </div>

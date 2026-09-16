@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { login } from './auth.repository';
+import logoDark from '../../assets/logo-sjl.webp';
 
 /**
  * HU-28 — reemplaza a SeleccionarFiscalizadorScreen ("¿Quién eres?", HU-24).
@@ -37,36 +38,38 @@ export default function LoginScreen({ onListo }: Props) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '1.5rem',
+        padding: '1.5rem 1rem',
         backgroundColor: 'var(--color-bg-app)',
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
-      <div style={{ width: '100%', maxWidth: 380 }}>
-        {/* Cabecera institucional */}
+      {/* Esquinas decorativas oficiales MDSJL */}
+      <div className="bg-decorations-wrapper">
+        <div className="bg-corner-top" />
+        <div className="bg-corner-bottom" />
+      </div>
+
+      <div style={{ width: '100%', maxWidth: 390, position: 'relative', zIndex: 1 }}>
+        {/* Cabecera institucional con Logo Oficial */}
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <div
+          <img
+            src={logoDark}
+            alt="San Juan de Lurigancho"
             style={{
-              width: 56,
-              height: 56,
-              margin: '0 auto 1rem auto',
-              borderRadius: 'var(--radius-lg)',
-              background: 'linear-gradient(135deg, var(--color-primary-800), var(--color-primary-600))',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+              maxHeight: 52,
+              width: 'auto',
+              maxWidth: '85%',
+              margin: '0 auto 0.875rem auto',
+              display: 'block',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.05))',
             }}
-          >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
-          </div>
-          <h1 style={{ fontSize: '1.35rem', marginBottom: '0.25rem', color: 'var(--color-primary-900)' }}>
-            Fiscalización de Campo
+          />
+          <h1 style={{ fontSize: '1.25rem', marginBottom: '0.2rem', color: 'var(--color-primary-900)', fontWeight: 800 }}>
+            Fiscalización en Campo
           </h1>
-          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: 0 }}>
-            Municipalidad de San Juan de Lurigancho
+          <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginBottom: 0 }}>
+            Subgerencia de Operaciones de Fiscalización
           </p>
         </div>
 

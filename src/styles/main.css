@@ -59,19 +59,72 @@ p {
   font-size: 0.9375rem;
 }
 
-/* Layout Shell */
+/* Layout Shell & Decoraciones de Esquina */
 .app-shell {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   background-color: var(--color-bg-app);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.bg-decorations-wrapper {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.bg-corner-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 130px;
+  height: 130px;
+  background-image: url('/assets/corner-top.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: top left;
+  opacity: 0.85;
+  user-select: none;
+  pointer-events: none;
+}
+
+.bg-corner-bottom {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 130px;
+  height: 130px;
+  background-image: url('/assets/corner-bottom.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: bottom right;
+  opacity: 0.85;
+  user-select: none;
+  pointer-events: none;
+}
+
+@media (min-width: 640px) {
+  .bg-corner-top {
+    width: 170px;
+    height: 170px;
+  }
+  .bg-corner-bottom {
+    width: 170px;
+    height: 170px;
+  }
 }
 
 .app-container {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  max-width: 540px;
+  max-width: 480px;
   margin: 0 auto;
-  padding: 1.25rem 1rem 3rem 1rem;
+  padding: 1.25rem 1rem 3.5rem 1rem;
   flex: 1;
 }
 
@@ -163,6 +216,225 @@ p {
 .card--warning {
   border-left: 4px solid var(--color-warning);
   background-color: var(--color-warning-bg);
+}
+
+/* Dashboard Móvil Moderno */
+.dashboard-hero {
+  background: linear-gradient(135deg, var(--color-primary-900) 0%, var(--color-primary-800) 100%);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem 1.25rem;
+  color: var(--color-white);
+  box-shadow: var(--shadow-md);
+  margin-bottom: 1.25rem;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dashboard-hero::after {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+}
+
+.dashboard-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+  color: var(--color-white);
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-hero-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-hero-desc {
+  font-size: 0.8125rem;
+  color: var(--color-primary-100);
+  margin-bottom: 1.25rem;
+  line-height: 1.4;
+}
+
+.dashboard-hero-btn {
+  background-color: var(--color-white);
+  color: var(--color-primary-900);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  width: 100%;
+}
+
+.dashboard-hero-btn:active {
+  transform: scale(0.98);
+}
+
+/* Grilla de Métricas Operativas (KPIs Móvil) */
+.dashboard-kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.dashboard-kpi-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 0.875rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  text-align: left;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+}
+
+.dashboard-kpi-card:active {
+  transform: scale(0.98);
+  border-color: var(--color-primary-500);
+}
+
+.dashboard-kpi-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-kpi-title {
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.2rem;
+}
+
+.dashboard-kpi-value {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--color-text-title);
+  line-height: 1.2;
+}
+
+.dashboard-kpi-sub {
+  font-size: 0.725rem;
+  color: var(--color-text-muted);
+  margin-top: 0.35rem;
+}
+
+/* Grupo de Menú Móvil */
+.menu-group {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.25rem;
+}
+
+.menu-group-header {
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  padding: 0.875rem 1rem 0.4rem 1rem;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.menu-item:last-child {
+  border-bottom: none;
+}
+
+.menu-item:active {
+  background-color: var(--color-primary-50);
+}
+
+.menu-item-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.menu-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.menu-item-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-text-title);
+  margin-bottom: 0.125rem;
+}
+
+.menu-item-desc {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-item-arrow {
+  color: var(--color-text-light);
+  flex-shrink: 0;
 }
 
 /* Wizard Header y Progreso */
