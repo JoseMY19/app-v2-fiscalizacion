@@ -388,11 +388,13 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {/* Esquinas decorativas de fondo MDSJL (Fluido y sin lag) */}
-      <div className="bg-decorations-wrapper">
-        <div className="bg-corner-top" />
-        <div className="bg-corner-bottom" />
-      </div>
+      {/* Esquinas decorativas de fondo MDSJL: Únicamente en Inicio para no interferir con wizards ni formularios */}
+      {vista.nombre === 'inicio' && (
+        <div className="bg-decorations-wrapper">
+          <div className="bg-corner-top" />
+          <div className="bg-corner-bottom" />
+        </div>
+      )}
 
       <AppHeader
         pendientes={pendientes}
