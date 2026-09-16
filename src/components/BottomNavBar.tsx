@@ -53,10 +53,10 @@ export default function BottomNavBar({
       <div className="bottom-nav-fab-container">
         <button
           type="button"
-          className="bottom-nav-fab"
+          className={`bottom-nav-fab ${vistaActual === 'nueva-intervencion' ? 'bottom-nav-fab--active' : ''}`}
           onClick={onNuevaIntervencion}
-          title="Iniciar Nueva Intervención"
-          aria-label="Iniciar Nueva Intervención"
+          title="Nueva Intervención"
+          aria-label="Nueva Intervención"
         >
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3">
             <line x1="12" y1="5" x2="12" y2="19" />

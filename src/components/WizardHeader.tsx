@@ -18,14 +18,17 @@ export default function WizardHeader({
   const porcentaje = Math.min(100, Math.max(0, Math.round((pasoActual / totalPasos) * 100)));
 
   return (
-    <div className="wizard-nav">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.375rem' }}>
+    <div className="wizard-card-header">
+      {/* Fila superior: Botón Volver + Indicador de Paso + Porcentaje */}
+      <div className="wizard-header-top">
         {onVolver ? (
           <button
             type="button"
-            className="btn-back"
+            className="wizard-back-btn"
             onClick={onVolver}
             disabled={deshabilitarVolver}
+            aria-label="Volver al paso anterior"
+            title="Volver"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -35,18 +38,29 @@ export default function WizardHeader({
         ) : (
           <div />
         )}
-        <span className="badge badge-primary">
-          Paso {pasoActual} de {totalPasos}
-        </span>
+
+        <div className="wizard-step-indicators">
+          <span className="wizard-step-badge">
+            Paso {pasoActual} de {totalPasos}
+          </span>
+          <span className="wizard-percent-badge">
+            {porcentaje}%
+          </span>
+        </div>
       </div>
 
-      <div className="wizard-progress-bar-bg">
-        <div className="wizard-progress-bar-fill" style={{ width: `${porcentaje}%` }} />
+      {/* Barra de progreso con pista suave y relleno degradado */}
+      <div className="wizard-progress-track">
+        <div
+          className="wizard-progress-fill"
+          style={{ width: `${porcentaje}%` }}
+        />
       </div>
 
-      <div style={{ marginTop: '0.5rem' }}>
+      {/* Título del Paso y Descripción */}
+      <div className="wizard-title-block">
         <h1 className="wizard-step-title">{titulo}</h1>
-        {subtitulo && <p className="form-hint" style={{ marginTop: '0.125rem' }}>{subtitulo}</p>}
+        {subtitulo && <p className="wizard-step-sub">{subtitulo}</p>}
       </div>
     </div>
   );

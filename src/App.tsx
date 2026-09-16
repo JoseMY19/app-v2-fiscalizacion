@@ -388,13 +388,11 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {/* Esquinas decorativas de fondo MDSJL: Únicamente en Inicio para no interferir con wizards ni formularios */}
-      {vista.nombre === 'inicio' && (
-        <div className="bg-decorations-wrapper">
-          <div className="bg-corner-top" />
-          <div className="bg-corner-bottom" />
-        </div>
-      )}
+      {/* Esquinas decorativas de fondo MDSJL (Fluido y sin lag) */}
+      <div className="bg-decorations-wrapper">
+        <div className="bg-corner-top" />
+        <div className="bg-corner-bottom" />
+      </div>
 
       <AppHeader
         pendientes={pendientes}
@@ -430,16 +428,14 @@ export default function App() {
 
       {contenido}
 
-      {/* Barra de Navegación Inferior Móvil con FAB Central (+) */}
-      {vista.nombre !== 'nueva-intervencion' && (
-        <BottomNavBar
-          vistaActual={vista.nombre}
-          onCambiarVista={(v) => setVista({ nombre: v })}
-          onNuevaIntervencion={() => setVista({ nombre: 'nueva-intervencion' })}
-          tieneObservadas={Boolean(observadasCount && observadasCount > 0)}
-          pendientesSync={pendientes}
-        />
-      )}
+      {/* Barra de Navegación Inferior Móvil Permanente con FAB Central (+) */}
+      <BottomNavBar
+        vistaActual={vista.nombre}
+        onCambiarVista={(v) => setVista({ nombre: v })}
+        onNuevaIntervencion={() => setVista({ nombre: 'nueva-intervencion' })}
+        tieneObservadas={Boolean(observadasCount && observadasCount > 0)}
+        pendientesSync={pendientes}
+      />
 
       {mostrarLogin && (
         <div

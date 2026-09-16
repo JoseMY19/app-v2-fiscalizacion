@@ -615,41 +615,124 @@ p {
   flex-shrink: 0;
 }
 
-/* Wizard Header y Progreso */
-.wizard-nav {
-  margin-bottom: 1.25rem;
+/* Wizard Header y Progreso - Tarjeta Unificada Moderna */
+.wizard-card-header {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.125rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-xs);
+  position: relative;
+  z-index: 2;
 }
 
-.wizard-progress-bar-bg {
+.wizard-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.wizard-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-body);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.wizard-back-btn:hover:not(:disabled) {
+  background-color: var(--color-primary-50);
+  border-color: var(--color-primary-200);
+  color: var(--color-primary-700);
+}
+
+.wizard-back-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.wizard-back-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.wizard-step-indicators {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.wizard-step-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-primary-700);
+  background-color: var(--color-primary-50);
+  border: 1px solid var(--color-primary-100);
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.02em;
+}
+
+.wizard-percent-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-pill);
+}
+
+.wizard-progress-track {
   width: 100%;
   height: 6px;
   background-color: var(--color-border);
   border-radius: var(--radius-pill);
   overflow: hidden;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.875rem;
 }
 
-.wizard-progress-bar-fill {
+.wizard-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-primary-600), var(--color-accent-500));
+  background: linear-gradient(90deg, var(--color-primary-600), var(--color-primary-500));
   border-radius: var(--radius-pill);
-  transition: width 0.3s ease;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.wizard-step-info {
+.wizard-title-block {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
-  font-weight: 600;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
 .wizard-step-title {
   font-size: 1.125rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--color-primary-900);
-  margin-top: 0.25rem;
+  line-height: 1.25;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.wizard-step-sub {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.35;
+}
+
+/* Compatibilidad previa */
+.wizard-nav {
+  margin-bottom: 1rem;
 }
 
 /* Botones Modernos */
@@ -1258,4 +1341,9 @@ p {
 .bottom-nav-fab:active {
   transform: scale(0.92);
   box-shadow: 0 2px 8px rgba(29, 58, 143, 0.3);
+}
+
+.bottom-nav-fab--active {
+  background: linear-gradient(135deg, var(--color-primary-800), var(--color-primary-600));
+  box-shadow: 0 0 0 3.5px rgba(29, 58, 143, 0.25), 0 6px 18px rgba(29, 58, 143, 0.45);
 }
