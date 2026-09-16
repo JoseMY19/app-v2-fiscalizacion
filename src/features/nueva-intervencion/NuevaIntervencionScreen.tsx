@@ -84,20 +84,26 @@ export default function NuevaIntervencionScreen({ onGuardado, onCancelar }: Prop
 
       {/* Estado: GPS fijado con éxito */}
       {captura.estado === 'capturado' && (
-        <div className="card" style={{ borderLeft: '4px solid var(--color-success)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <span style={{ fontWeight: 600, fontSize: '0.9375rem', color: 'var(--color-primary-900)' }}>
-              Coordenadas Registradas
-            </span>
-            <span className="badge badge-success">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              GPS Fijado
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.125rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+              <div className="card-icon-pin">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              </div>
+              <span style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--color-text-title)' }}>
+                Coordenadas de Campo
+              </span>
+            </div>
+            <span className="gps-status-chip">
+              <span className="gps-status-chip-dot" />
+              <span>GPS Activo</span>
             </span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.875rem' }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Latitud</label>
               <input
@@ -119,16 +125,18 @@ export default function NuevaIntervencionScreen({ onGuardado, onCancelar }: Prop
           </div>
 
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">Precisión GPS</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <input
-                type="text"
-                className="form-input"
-                value={`± ${captura.precisionM.toFixed(1)} metros`}
-                readOnly
-              />
+            <label className="form-label">Precisión satelital</label>
+            <div className="gps-precision-pill">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ color: 'var(--color-primary-600)', flexShrink: 0 }}>
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+                <path d="M2 12h20" />
+              </svg>
+              <span>± {captura.precisionM.toFixed(1)} metros</span>
             </div>
-            <span className="form-hint">Dato capturado directamente por el sensor del dispositivo.</span>
+            <span className="form-hint" style={{ marginTop: '0.35rem', display: 'block' }}>
+              Capturado automáticamente por el sensor del dispositivo móvil.
+            </span>
           </div>
         </div>
       )}
