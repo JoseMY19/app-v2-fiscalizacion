@@ -66,24 +66,26 @@ p {
   min-height: 100vh;
   background-color: var(--color-bg-app);
   position: relative;
-  overflow-x: hidden;
+  isolation: isolate;
 }
 
 .app-container {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  padding: 1rem 1rem 3.5rem 1rem;
+  padding: 4.5rem 1rem 5.5rem 1rem;
   flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
-/* Decoraciones de Esquinas para el Fondo (Sin Lag) */
+/* Decoraciones de Esquinas en el Fondo (Detrás del Contenido, Z-Index Negativo) */
 .bg-decorations-wrapper {
   position: fixed;
   inset: 0;
   pointer-events: none;
   overflow: hidden;
-  z-index: 0;
+  z-index: -1;
 }
 
 .bg-corner-top {
@@ -96,14 +98,14 @@ p {
   background-repeat: no-repeat;
   background-size: contain;
   background-position: top left;
-  opacity: 0.75;
+  opacity: 0.8;
   user-select: none;
   pointer-events: none;
 }
 
 .bg-corner-bottom {
   position: absolute;
-  bottom: 60px;
+  bottom: 62px;
   right: 0;
   width: 120px;
   height: 120px;
@@ -111,20 +113,27 @@ p {
   background-repeat: no-repeat;
   background-size: contain;
   background-position: bottom right;
-  opacity: 0.75;
+  opacity: 0.8;
   user-select: none;
   pointer-events: none;
 }
 
-/* Cabecera Principal - Limpia, Nativa y de Alto Rendimiento (60 FPS) */
+/* Cabecera Principal - Fija en la Parte Superior (Nunca se desplaza al hacer scroll) */
 .header-bar {
   background-color: var(--color-white);
   border-bottom: 1px solid var(--color-border);
   box-shadow: 0 1px 3px 0 rgba(14, 26, 59, 0.05);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
   z-index: 40;
-  padding: 0.625rem 1rem;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
 }
 
 .header-content {
@@ -217,6 +226,8 @@ p {
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
   box-shadow: var(--shadow-xs);
+  position: relative;
+  z-index: 2;
 }
 
 .inspector-avatar {
@@ -274,6 +285,8 @@ p {
   padding: 1.25rem;
   margin-bottom: 1rem;
   box-shadow: var(--shadow-xs);
+  position: relative;
+  z-index: 2;
   transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
 }
 
