@@ -160,13 +160,30 @@ export default function App() {
       <MisTramitesScreen onVolver={() => setVista({ nombre: 'inicio' })} />
     ) : (
       <div className="app-container">
+        {/* Identidad del Fiscalizador */}
+        <div className="inspector-card">
+          <div className="inspector-avatar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+          <div className="inspector-info">
+            <div className="inspector-role">Fiscalizador de Campo</div>
+            <div className="inspector-id">
+              {fiscalizadorDni ? (fiscalizadorDni.includes('-') || fiscalizadorDni.length > 12 ? `ID #${fiscalizadorDni.slice(0, 8).toUpperCase()}` : `DNI ${fiscalizadorDni}`) : 'En servicio'}
+            </div>
+          </div>
+          <div className="inspector-badge">MDSJL</div>
+        </div>
+
         {/* Tarjeta Hero Principal: Nueva Intervención */}
         <div className="dashboard-hero">
           <div className="dashboard-hero-badge">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
               <circle cx="12" cy="12" r="10" />
             </svg>
-            <span>MDSJL · En Operación</span>
+            <span>Operaciones de Campo</span>
           </div>
           <h2 className="dashboard-hero-title">Nueva Fiscalización</h2>
           <p className="dashboard-hero-desc">
@@ -311,12 +328,6 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {/* Esquinas decorativas oficiales MDSJL */}
-      <div className="bg-decorations-wrapper">
-        <div className="bg-corner-top" />
-        <div className="bg-corner-bottom" />
-      </div>
-
       <AppHeader
         pendientes={pendientes}
         sincronizando={sincronizando}
