@@ -31,11 +31,27 @@ export default function MisTramitesScreen({ onVolver }: Props) {
 
   return (
     <div className="app-container">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-        <h1 style={{ fontSize: '1.125rem', margin: 0 }}>Mis trámites</h1>
-        <button type="button" className="btn btn-sm btn-outline" onClick={onVolver}>
-          Volver
+      <div className="screen-header-card">
+        <button
+          type="button"
+          className="btn-icon-back"
+          onClick={onVolver}
+          aria-label="Volver al inicio"
+          title="Volver"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
         </button>
+        <div className="screen-header-info">
+          <h1 className="screen-header-title">Mis trámites</h1>
+          <p className="screen-header-subtitle">Historial de actuaciones sincronizadas</p>
+        </div>
+        {items && items.length > 0 && (
+          <span className="badge badge-neutral" style={{ fontSize: '0.75rem' }}>
+            {items.length}
+          </span>
+        )}
       </div>
 
       {error && (
