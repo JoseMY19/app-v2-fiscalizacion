@@ -12,8 +12,14 @@ import MisTramitesScreen from './features/mis-tramites/MisTramitesScreen';
 import { socket } from './lib/socket';
 
 import AppHeader from './components/AppHeader';
+import BottomNavBar from './components/BottomNavBar';
 
-type Vista = { nombre: 'inicio' } | { nombre: 'nueva-intervencion' } | { nombre: 'observadas' } | { nombre: 'mis-tramites' };
+type Vista =
+  | { nombre: 'inicio' }
+  | { nombre: 'nueva-intervencion' }
+  | { nombre: 'observadas' }
+  | { nombre: 'mis-tramites' }
+  | { nombre: 'perfil' };
 
 // Mismo mapeo que TipoActuacionScreen.tsx — nunca se muestra el enum crudo al usuario.
 const TITULO_CAMINO: Record<string, string> = {
@@ -158,6 +164,60 @@ export default function App() {
       />
     ) : vista.nombre === 'mis-tramites' ? (
       <MisTramitesScreen onVolver={() => setVista({ nombre: 'inicio' })} />
+    ) : vista.nombre === 'perfil' ? (
+      <div className="app-container">
+        <div className="card" style={{ padding: '1.5rem', textAlign: 'center' }}>
+          <div
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              background: 'var(--color-primary-50)',
+              color: 'var(--color-primary-600)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 0.875rem auto',
+            }}
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
+          <h2 style={{ fontSize: '1.125rem', marginBottom: '0.2rem' }}>Inspector Municipal</h2>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.8125rem', marginBottom: '1.25rem' }}>
+            Subgerencia de Operaciones de Fiscalización
+          </p>
+
+          <div style={{ textAlign: 'left', background: 'var(--color-bg-subtle)', borderRadius: 'var(--radius-md)', padding: '0.875rem 1rem', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.8125rem' }}>
+              <span style={{ color: 'var(--color-text-muted)' }}>DNI / ID:</span>
+              <span style={{ fontWeight: 700 }}>{fiscalizadorDni ?? 'Sin asignar'}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.8125rem' }}>
+              <span style={{ color: 'var(--color-text-muted)' }}>Jurisdicción:</span>
+              <span style={{ fontWeight: 600 }}>San Juan de Lurigancho</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
+              <span style={{ color: 'var(--color-text-muted)' }}>Estado:</span>
+              <span style={{ color: 'var(--color-success)', fontWeight: 700 }}>Activo en campo</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="btn btn-outline btn-block"
+            style={{ color: 'var(--color-danger)', borderColor: 'var(--color-danger-border)' }}
+            onClick={() => {
+              localStorage.removeItem('pas_sjl_fiscalizador_activo');
+              setTieneFiscalizador(false);
+            }}
+          >
+            Cerrar sesión en este dispositivo
+          </button>
+        </div>
+      </div>
     ) : (
       <div className="app-container">
         {/* Identidad del Fiscalizador */}
@@ -328,6 +388,12 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      {/* Esquinas decorativas de fondo MDSJL (Fluido y sin lag) */}
+      <div className="bg-decorations-wrapper">
+        <div className="bg-corner-top" />
+        <div className="bg-corner-bottom" />
+      </div>
+
       <AppHeader
         pendientes={pendientes}
         sincronizando={sincronizando}
@@ -361,6 +427,17 @@ export default function App() {
       )}
 
       {contenido}
+
+      {/* Barra de Navegación Inferior Móvil con FAB Central (+) */}
+      {vista.nombre !== 'nueva-intervencion' && (
+        <BottomNavBar
+          vistaActual={vista.nombre}
+          onCambiarVista={(v) => setVista({ nombre: v })}
+          onNuevaIntervencion={() => setVista({ nombre: 'nueva-intervencion' })}
+          tieneObservadas={Boolean(observadasCount && observadasCount > 0)}
+          pendientesSync={pendientes}
+        />
+      )}
 
       {mostrarLogin && (
         <div

@@ -77,9 +77,9 @@ p {
   flex: 1;
 }
 
-/* Decoraciones Estáticas de Esquinas para Pantalla de Login */
+/* Decoraciones de Esquinas para el Fondo (Sin Lag) */
 .bg-decorations-wrapper {
-  position: absolute;
+  position: fixed;
   inset: 0;
   pointer-events: none;
   overflow: hidden;
@@ -90,28 +90,28 @@ p {
   position: absolute;
   top: 0;
   left: 0;
-  width: 130px;
-  height: 130px;
+  width: 120px;
+  height: 120px;
   background-image: url('/assets/corner-top.png');
   background-repeat: no-repeat;
   background-size: contain;
   background-position: top left;
-  opacity: 0.85;
+  opacity: 0.75;
   user-select: none;
   pointer-events: none;
 }
 
 .bg-corner-bottom {
   position: absolute;
-  bottom: 0;
+  bottom: 60px;
   right: 0;
-  width: 130px;
-  height: 130px;
+  width: 120px;
+  height: 120px;
   background-image: url('/assets/corner-bottom.png');
   background-repeat: no-repeat;
   background-size: contain;
   background-position: bottom right;
-  opacity: 0.85;
+  opacity: 0.75;
   user-select: none;
   pointer-events: none;
 }
@@ -139,14 +139,36 @@ p {
 .header-brand {
   display: flex;
   align-items: center;
+  gap: 0.625rem;
 }
 
-.header-logo-img {
-  height: 28px;
-  width: auto;
-  max-width: 150px;
-  object-fit: contain;
-  display: block;
+.header-brand-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-primary-800), var(--color-primary-600));
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(29, 58, 143, 0.25);
+  flex-shrink: 0;
+}
+
+.header-app-name {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--color-text-title);
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.header-app-sub {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  margin: 0;
 }
 
 .header-status-group {
@@ -1030,4 +1052,103 @@ p {
   .actions-footer > .btn {
     width: auto;
   }
+}
+
+/* Barra de Navegación Inferior (Estilo Móvil Nativo con FAB) */
+.bottom-nav-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 62px;
+  background-color: var(--color-white);
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -2px 10px rgba(14, 26, 59, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 0.5rem;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  z-index: 50;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0.35rem 0;
+  gap: 0.2rem;
+  transition: color var(--transition-fast);
+}
+
+.bottom-nav-item:active {
+  transform: scale(0.95);
+}
+
+.bottom-nav-item--active {
+  color: var(--color-primary-600);
+}
+
+.bottom-nav-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-nav-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.bottom-nav-dot {
+  position: absolute;
+  top: -2px;
+  right: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #ec4899;
+  border: 1.5px solid var(--color-white);
+}
+
+.bottom-nav-dot--alert {
+  background-color: var(--color-warning);
+}
+
+.bottom-nav-fab-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  position: relative;
+}
+
+.bottom-nav-fab {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary-700), var(--color-primary-500));
+  border: 3.5px solid var(--color-white);
+  box-shadow: 0 4px 14px rgba(29, 58, 143, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-top: -24px;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.bottom-nav-fab:active {
+  transform: scale(0.92);
+  box-shadow: 0 2px 8px rgba(29, 58, 143, 0.3);
 }
