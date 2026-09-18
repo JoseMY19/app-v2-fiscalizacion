@@ -43,9 +43,6 @@ export default function WizardHeader({
           <span className="wizard-step-badge">
             Paso {pasoActual} de {totalPasos}
           </span>
-          <span className="wizard-percent-badge">
-            {porcentaje}%
-          </span>
         </div>
       </div>
 
