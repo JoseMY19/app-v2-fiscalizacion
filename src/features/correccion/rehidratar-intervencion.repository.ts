@@ -160,7 +160,7 @@ export async function rehidratarDesdeServidor(bundle: BundleIntervencion): Promi
         bundle.actasMedidaProvisional.map((m) => ({
           intervencionLocalId: bundle.id,
           ...m,
-          tipoMedida: m.tipoMedida as 'CLAUSURA' | 'PARALIZACION',
+          tipoMedida: m.tipoMedida as 'CLAUSURA' | 'PARALIZACION' | 'OTROS',
           creadoEn: ahora,
         })),
       );

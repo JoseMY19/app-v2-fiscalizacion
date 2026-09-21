@@ -2,7 +2,7 @@ import { db, type ActaMedidaProvisionalLocal } from '../../lib/db';
 
 export interface DatosActaMedidaProvisional {
   numeroCorrelativo: string;
-  tipoMedida: 'CLAUSURA' | 'PARALIZACION';
+  tipoMedida: 'CLAUSURA' | 'PARALIZACION' | 'OTROS';
   descripcion?: string;
   lugarEjecucion?: string;
   observacionesAdministrado?: string;

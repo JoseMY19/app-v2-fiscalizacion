@@ -220,7 +220,7 @@ export interface ActaMedidaProvisionalLocal {
   id?: number;
   intervencionLocalId: string;
   numeroCorrelativo: string;
-  tipoMedida: 'CLAUSURA' | 'PARALIZACION';
+  tipoMedida: 'CLAUSURA' | 'PARALIZACION' | 'OTROS';
   descripcion?: string;
   lugarEjecucion?: string;
   observacionesAdministrado?: string;

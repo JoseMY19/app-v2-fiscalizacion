@@ -18,6 +18,7 @@ const OPCIONES: { valor: OrigenIntervencion; etiqueta: string; descripcion: stri
   { valor: OrigenIntervencion.INOPINADA, etiqueta: 'Inspección inopinada', descripcion: 'Patrullaje o fiscalización directa en campo' },
   { valor: OrigenIntervencion.ORDEN_SUPERIOR, etiqueta: 'Orden superior', descripcion: 'Disposición de Gerencia / Subgerencia de Control Municipal' },
   { valor: OrigenIntervencion.DOC_EXTERNO, etiqueta: 'Documento externo', descripcion: 'Oficio de PNP, Fiscalía, Defensa Civil u otra entidad' },
+  { valor: OrigenIntervencion.OTROS, etiqueta: 'Otros', descripcion: 'Situación que no encaja en las categorías anteriores' },
 ];
 
 interface Props {

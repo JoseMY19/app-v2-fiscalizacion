@@ -13,6 +13,10 @@ const OPCIONES: { valor: BaseCalculo; etiqueta: string }[] = [
   { valor: BaseCalculo.UIT_FIJO, etiqueta: 'UIT fija' },
   { valor: BaseCalculo.VALOR_OBRA, etiqueta: 'Valor de obra' },
   { valor: BaseCalculo.POR_VOLUMEN, etiqueta: 'Por volumen' },
+  // Pedido explícito de negocio (reunión 2026-09): puede haber ordenanzas
+  // que calculen distinto a las 3 formas de arriba — nunca se fuerza un
+  // default silencioso, el cálculo en ese caso queda para gabinete.
+  { valor: BaseCalculo.OTROS, etiqueta: 'Otros' },
 ];
 
 interface Props {
