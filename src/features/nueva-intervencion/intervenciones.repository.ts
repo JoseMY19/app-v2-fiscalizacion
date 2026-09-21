@@ -1,6 +1,7 @@
 import { EstadoIntervencion, OrigenIntervencion, OrigenUbicacion, TipoActuacion } from '@pas-sjl/shared-types';
 import { db, type IntervencionLocal } from '../../lib/db';
 import { obtenerFiscalizadorActivo } from '../auth/auth.repository';
+import { generarUuid } from '../../lib/uuid';
 
 /**
  * HU-01: alta de una intervención con su ubicación inicial.
@@ -14,7 +15,7 @@ export type UbicacionInicial =
 
 export async function crearIntervencionConUbicacion(ubicacion: UbicacionInicial): Promise<string> {
   const ahora = new Date().toISOString();
-  const localId = crypto.randomUUID();
+  const localId = generarUuid();
 
   const registro: IntervencionLocal = {
     localId,

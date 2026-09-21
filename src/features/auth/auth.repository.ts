@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../../lib/config';
+import { generarUuid } from '../../lib/uuid';
 
 /**
  * HU-28 — reemplaza al gate simplificado "¿Quién eres?" (HU-24) por login
@@ -26,7 +27,7 @@ interface Sesion {
 export function obtenerDeviceId(): string {
   let deviceId = localStorage.getItem(CLAVE_DEVICE_ID);
   if (!deviceId) {
-    deviceId = crypto.randomUUID();
+    deviceId = generarUuid();
     localStorage.setItem(CLAVE_DEVICE_ID, deviceId);
   }
   return deviceId;
