@@ -12,10 +12,11 @@ import { obtenerUitVigenteLocal, sincronizarParametrosUit, uitCacheEstaVacio } f
 const OPCIONES: { valor: BaseCalculo; etiqueta: string }[] = [
   { valor: BaseCalculo.UIT_FIJO, etiqueta: 'UIT fija' },
   { valor: BaseCalculo.VALOR_OBRA, etiqueta: 'Valor de obra' },
-  { valor: BaseCalculo.POR_VOLUMEN, etiqueta: 'Por volumen' },
-  // Pedido explícito de negocio (reunión 2026-09): puede haber ordenanzas
-  // que calculen distinto a las 3 formas de arriba — nunca se fuerza un
-  // default silencioso, el cálculo en ese caso queda para gabinete.
+  // Pedido explícito de negocio (reunión 2026-09): "por volumen" no es una
+  // forma de cálculo aparte, cae dentro de "Otros" — se deja BaseCalculo.
+  // POR_VOLUMEN vivo en el enum (hay actas ya sincronizadas con ese valor,
+  // nunca se tocan datos ya guardados) pero ya no se ofrece como opción
+  // nueva.
   { valor: BaseCalculo.OTROS, etiqueta: 'Otros' },
 ];
 
