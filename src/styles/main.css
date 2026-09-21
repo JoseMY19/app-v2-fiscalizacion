@@ -23,6 +23,10 @@ body {
   flex-direction: column;
 }
 
+button, input, select, textarea {
+  font-family: inherit;
+}
+
 #root {
   min-height: 100vh;
   display: flex;
@@ -73,32 +77,32 @@ p {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  padding: 4.5rem 1rem 5.5rem 1rem;
+  padding: 4.75rem 1rem 5.5rem 1rem;
   flex: 1;
   position: relative;
   z-index: 1;
 }
 
-/* Decoraciones de Esquinas en el Fondo (Detrás del Contenido, Z-Index Negativo) */
+/* Decoraciones de Esquinas en el Fondo MDSJL (Fluido y visible en todas las pantallas) */
 .bg-decorations-wrapper {
   position: fixed;
   inset: 0;
   pointer-events: none;
   overflow: hidden;
-  z-index: -1;
+  z-index: 0;
 }
 
 .bg-corner-top {
   position: absolute;
-  top: 56px;
+  top: 58px;
   left: 0;
-  width: 120px;
-  height: 120px;
+  width: 150px;
+  height: 150px;
   background-image: url('/assets/corner-top.png');
   background-repeat: no-repeat;
   background-size: contain;
   background-position: top left;
-  opacity: 0.35;
+  opacity: 0.7;
   user-select: none;
   pointer-events: none;
 }
@@ -107,15 +111,23 @@ p {
   position: absolute;
   bottom: 62px;
   right: 0;
-  width: 120px;
-  height: 120px;
+  width: 150px;
+  height: 150px;
   background-image: url('/assets/corner-bottom.png');
   background-repeat: no-repeat;
   background-size: contain;
   background-position: bottom right;
-  opacity: 0.35;
+  opacity: 0.7;
   user-select: none;
   pointer-events: none;
+}
+
+@media (min-width: 480px) {
+  .bg-corner-top,
+  .bg-corner-bottom {
+    width: 185px;
+    height: 185px;
+  }
 }
 
 /* Cabecera de Pantalla Secundaria (Mis Trámites, Observadas, etc.) */
@@ -210,9 +222,9 @@ p {
 }
 
 .header-logo-img {
-  height: 32px;
+  height: 42px;
   width: auto;
-  max-width: 120px;
+  max-width: 140px;
   object-fit: contain;
   flex-shrink: 0;
   display: block;
@@ -309,7 +321,7 @@ p {
   animation: spin 1s linear infinite;
 }
 
-/* Tarjeta de Identidad del Inspector en el Dashboard */
+/* Tarjeta de Identidad del Inspector en el Dashboard (Estilo Credencial Municipal) */
 .inspector-card {
   display: flex;
   align-items: center;
@@ -446,7 +458,7 @@ p {
 .dashboard-hero {
   background: linear-gradient(135deg, #102a71 0%, #1d3a8f 50%, #2851b3 100%);
   border-radius: var(--radius-xl);
-  padding: 1.5rem 1.25rem;
+  padding: 1.35rem 1.25rem;
   color: var(--color-white);
   box-shadow: 0 8px 24px -4px rgba(29, 58, 143, 0.35);
   margin-bottom: 1.25rem;
@@ -479,7 +491,7 @@ p {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.625rem;
 }
 
 .dashboard-hero-title {
@@ -493,7 +505,7 @@ p {
 .dashboard-hero-desc {
   font-size: 0.8125rem;
   color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.125rem;
   line-height: 1.4;
 }
 
@@ -502,7 +514,7 @@ p {
   color: var(--color-primary-700);
   font-weight: 700;
   font-size: 0.9375rem;
-  padding: 0.875rem 1.25rem;
+  padding: 0.8125rem 1.25rem;
   border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
@@ -1402,15 +1414,16 @@ p {
   height: 62px;
   background-color: var(--color-white);
   border-top: 1px solid var(--color-border);
-  box-shadow: 0 -2px 10px rgba(14, 26, 59, 0.05);
+  box-shadow: 0 -2px 10px rgba(14, 26, 59, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-around;
   padding: 0 0.5rem;
-  padding-bottom: env(safe-area-inset-bottom, 0);
   z-index: 50;
   max-width: 480px;
   margin: 0 auto;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
 }
 
 .bottom-nav-item {
@@ -1485,6 +1498,8 @@ p {
   cursor: pointer;
   margin-top: -24px;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
 }
 
 .bottom-nav-fab:active {
@@ -1495,4 +1510,219 @@ p {
 .bottom-nav-fab--active {
   background: linear-gradient(135deg, var(--color-primary-800), var(--color-primary-600));
   box-shadow: 0 0 0 3.5px rgba(29, 58, 143, 0.25), 0 6px 18px rgba(29, 58, 143, 0.45);
+}
+
+/* ==========================================================================
+   Pantalla de Autenticación / Login Institucional MDSJL
+   ========================================================================== */
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem;
+  background-color: var(--color-bg-app);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-decorations {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.login-corner-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 145px;
+  height: 145px;
+  object-fit: contain;
+  object-position: top left;
+  user-select: none;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+.login-corner-bottom {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 145px;
+  height: 145px;
+  object-fit: contain;
+  object-position: bottom right;
+  user-select: none;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+@media (min-width: 480px) {
+  .login-corner-top,
+  .login-corner-bottom {
+    width: 180px;
+    height: 180px;
+  }
+}
+
+.login-container {
+  width: 100%;
+  max-width: 390px;
+  position: relative;
+  z-index: 1;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.login-logo-img {
+  max-height: 54px;
+  width: auto;
+  max-width: 85%;
+  margin: 0 auto 0.875rem auto;
+  display: block;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08));
+}
+
+.login-title {
+  font-size: 1.3125rem;
+  font-weight: 800;
+  color: var(--color-primary-900);
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.02em;
+}
+
+.login-subtitle {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0;
+  font-weight: 500;
+}
+
+.login-card {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 1.75rem;
+  box-shadow: 0 10px 30px -5px rgba(16, 42, 113, 0.1), 0 4px 12px -2px rgba(16, 42, 113, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #102a71 0%, #1d3a8f 50%, #2851b3 100%);
+}
+
+.login-card-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.login-card-header h2 {
+  font-size: 1.1875rem;
+  font-weight: 700;
+  color: var(--color-text-title);
+  margin-bottom: 0.25rem;
+}
+
+.login-card-header p {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0;
+}
+
+.login-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-input-icon {
+  position: absolute;
+  left: 0.875rem;
+  color: var(--color-text-light);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast);
+}
+
+.login-input-with-icon {
+  padding-left: 2.5rem;
+}
+
+.login-input-wrapper:focus-within .login-input-icon {
+  color: var(--color-primary-600);
+}
+
+.login-input-password {
+  padding-right: 2.625rem;
+}
+
+.login-password-toggle {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
+}
+
+.login-password-toggle:hover {
+  color: var(--color-primary-600);
+}
+
+.login-btn-submit {
+  margin-top: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(16, 42, 113, 0.22);
+}
+
+.login-btn-submit:disabled {
+  opacity: 0.55;
+  box-shadow: none;
+  background-color: var(--color-primary-300);
+  border-color: var(--color-primary-300);
+  color: var(--color-white);
+}
+
+.login-security-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.login-footer-text {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  margin-top: 1.25rem;
 }
