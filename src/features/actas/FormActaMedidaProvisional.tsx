@@ -4,18 +4,24 @@ import { guardarActaMedidaProvisional } from './acta-medida-provisional.reposito
 import CampoNumeroCorrelativo from './CampoNumeroCorrelativo';
 import { useVerificacionCorrelativo } from './useVerificacionCorrelativo';
 import AdjuntarFotoActa from '../evidencia/AdjuntarFotoActa';
+import EscanearActaOcr from './EscanearActaOcr';
+import type { DatosOcrActa } from '../../lib/ocr-offline';
 
 /**
- * HU-14 — Acta de Medida Provisional. tipoMedida se restringe a
- * CLAUSURA/PARALIZACION (Retención y Decomiso van por ActaAdicional). Sin
- * preselección: no hay texto confiable de medidaProvisional hoy para
- * inferirlo (ver la sesión de implementación) — el fiscalizador siempre
- * elige a mano.
+ * HU-14 — Acta de Medida Provisional. tipoMedida: CLAUSURA/PARALIZACION
+ * (Retención y Decomiso van por ActaAdicional) más "Otros" (pedido
+ * explícito de negocio, reunión 2026-09: hay más tipos reales — retiro
+ * de animal, cancelación de espectáculo público, etc. — que no están en
+ * una lista fija, así que "Otros" exige describir cuál en el campo
+ * Descripción). Sin preselección automática al abrir la pantalla — el
+ * escaneo OCR puede sugerirlo (ver EscanearActaOcr), pero el
+ * fiscalizador siempre confirma a mano antes de guardar.
  */
 
-const OPCIONES: { valor: 'CLAUSURA' | 'PARALIZACION'; etiqueta: string }[] = [
+const OPCIONES: { valor: 'CLAUSURA' | 'PARALIZACION' | 'OTROS'; etiqueta: string }[] = [
   { valor: 'CLAUSURA', etiqueta: 'Clausura' },
   { valor: 'PARALIZACION', etiqueta: 'Paralización' },
+  { valor: 'OTROS', etiqueta: 'Otros' },
 ];
 
 interface Props {
@@ -25,14 +31,29 @@ interface Props {
 
 export default function FormActaMedidaProvisional({ localId, onGuardada }: Props) {
   const [numeroCorrelativo, setNumeroCorrelativo] = useState('');
-  const [tipoMedida, setTipoMedida] = useState<'CLAUSURA' | 'PARALIZACION' | null>(null);
+  const [tipoMedida, setTipoMedida] = useState<'CLAUSURA' | 'PARALIZACION' | 'OTROS' | null>(null);
   const [descripcion, setDescripcion] = useState('');
   const [lugarEjecucion, setLugarEjecucion] = useState('');
   const [observacionesAdministrado, setObservacionesAdministrado] = useState('');
   const [guardando, setGuardando] = useState(false);
 
   const estadoCorrelativo = useVerificacionCorrelativo(TipoActa.MEDIDA_PROVISIONAL, numeroCorrelativo, localId);
-  const puedeGuardar = numeroCorrelativo.trim().length > 0 && estadoCorrelativo !== 'duplicado' && tipoMedida !== null;
+  const requiereDescripcion = tipoMedida === 'OTROS';
+  const puedeGuardar =
+    numeroCorrelativo.trim().length > 0 &&
+    estadoCorrelativo !== 'duplicado' &&
+    tipoMedida !== null &&
+    (!requiereDescripcion || descripcion.trim().length > 0);
+
+  function handleSugerenciasOcr(datos: DatosOcrActa) {
+    if (datos.numeroCorrelativo) setNumeroCorrelativo(datos.numeroCorrelativo);
+    if (datos.tipoMedida === 'CLAUSURA' || datos.tipoMedida === 'PARALIZACION' || datos.tipoMedida === 'OTROS') {
+      setTipoMedida(datos.tipoMedida);
+    }
+    if (datos.descripcion) setDescripcion(datos.descripcion);
+    if (datos.lugarEjecucion) setLugarEjecucion(datos.lugarEjecucion);
+    if (datos.observacionesAdministrado) setObservacionesAdministrado(datos.observacionesAdministrado);
+  }
 
   async function handleGuardar() {
     if (!puedeGuardar || !tipoMedida || guardando) return;
@@ -58,6 +79,8 @@ export default function FormActaMedidaProvisional({ localId, onGuardada }: Props
 
   return (
     <div>
+      <EscanearActaOcr tipoActa="MEDIDA_PROVISIONAL" onSugerencias={handleSugerenciasOcr} />
+
       <CampoNumeroCorrelativo value={numeroCorrelativo} onChange={setNumeroCorrelativo} estado={estadoCorrelativo} />
 
       <div className="form-group">
@@ -87,13 +110,15 @@ export default function FormActaMedidaProvisional({ localId, onGuardada }: Props
       </div>
 
       <div className="form-group">
-        <label className="form-label">Descripción (opcional)</label>
+        <label className={`form-label ${requiereDescripcion ? 'form-label-required' : ''}`}>
+          Descripción {requiereDescripcion ? '(indica qué tipo de medida es)' : '(opcional)'}
+        </label>
         <input
           type="text"
           className="form-input"
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
-          placeholder="Ej. Clausura temporal del establecimiento comercial"
+          placeholder={requiereDescripcion ? 'Ej. Retiro del animal, cancelación de espectáculo público...' : 'Ej. Clausura temporal del establecimiento comercial'}
         />
       </div>
 

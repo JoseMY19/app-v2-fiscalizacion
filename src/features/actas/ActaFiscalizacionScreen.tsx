@@ -5,6 +5,8 @@ import { guardarActaFiscalizacion, HECHOS_VERIFICADOS_MIN_CARACTERES, validarHec
 import CampoNumeroCorrelativo from './CampoNumeroCorrelativo';
 import { useVerificacionCorrelativo } from './useVerificacionCorrelativo';
 import AdjuntarFotoActa from '../evidencia/AdjuntarFotoActa';
+import EscanearActaOcr from './EscanearActaOcr';
+import type { DatosOcrActa } from '../../lib/ocr-offline';
 
 /**
  * HU-12 — Levantar Acta de Fiscalización Municipal (caminos B y C).
@@ -39,6 +41,12 @@ export default function ActaFiscalizacionScreen({ localId, onGuardada, onVolver 
   }, [localId]);
 
   const estadoCorrelativo = useVerificacionCorrelativo(TipoActa.FISCALIZACION, numeroCorrelativo, localId);
+
+  function handleSugerenciasOcr(datos: DatosOcrActa) {
+    if (datos.numeroCorrelativo) setNumeroCorrelativo(datos.numeroCorrelativo);
+    if (datos.hechosVerificados) setHechosVerificados(datos.hechosVerificados);
+    if (datos.observacionesAdministrado) setObservacionesAdministrado(datos.observacionesAdministrado);
+  }
 
   const puedeGuardar =
     numeroCorrelativo.trim().length > 0 &&
@@ -75,6 +83,8 @@ export default function ActaFiscalizacionScreen({ localId, onGuardada, onVolver 
       />
 
       <div className="card">
+        <EscanearActaOcr tipoActa="FISCALIZACION" onSugerencias={handleSugerenciasOcr} />
+
         <CampoNumeroCorrelativo value={numeroCorrelativo} onChange={setNumeroCorrelativo} estado={estadoCorrelativo} />
 
         <div className="form-group">

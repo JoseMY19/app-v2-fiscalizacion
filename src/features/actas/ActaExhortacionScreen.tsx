@@ -8,6 +8,8 @@ import type { SeleccionCuisConDetalle } from '../cuis/intervencion-cuis.reposito
 import CampoNumeroCorrelativo from './CampoNumeroCorrelativo';
 import { useVerificacionCorrelativo } from './useVerificacionCorrelativo';
 import AdjuntarFotoActa from '../evidencia/AdjuntarFotoActa';
+import EscanearActaOcr from './EscanearActaOcr';
+import type { DatosOcrActa } from '../../lib/ocr-offline';
 
 /**
  * HU-11 — Levantar Acta de Exhortación (camino A).
@@ -57,6 +59,13 @@ export default function ActaExhortacionScreen({ localId, onGuardada, onVolver }:
 
   const estadoCorrelativo = useVerificacionCorrelativo(TipoActa.EXHORTACION, numeroCorrelativo, localId);
 
+  function handleSugerenciasOcr(datos: DatosOcrActa) {
+    if (datos.numeroCorrelativo) setNumeroCorrelativo(datos.numeroCorrelativo);
+    if (datos.presuntaInfraccion) setPresuntaInfraccion(datos.presuntaInfraccion);
+    if (datos.plazoSubsanacion) setPlazoSubsanacion(datos.plazoSubsanacion);
+    if (datos.observaciones) setObservaciones(datos.observaciones);
+  }
+
   const puedeGuardar =
     numeroCorrelativo.trim().length > 0 &&
     estadoCorrelativo !== 'duplicado' &&
@@ -98,6 +107,8 @@ export default function ActaExhortacionScreen({ localId, onGuardada, onVolver }:
       />
 
       <div className="card">
+        <EscanearActaOcr tipoActa="EXHORTACION" onSugerencias={handleSugerenciasOcr} />
+
         <SelectorCodigoParaActa localId={localId} onElegido={setSeleccion} />
 
         {seleccion?.escala?.medidaProvisional && (
