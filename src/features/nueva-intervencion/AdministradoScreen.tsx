@@ -40,7 +40,11 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
   const [numeroDocumento, setNumeroDocumento] = useState('');
   const [nombresRazonSocial, setNombresRazonSocial] = useState('');
   const [domicilio, setDomicilio] = useState('');
-  const [distrito, setDistrito] = useState('');
+  // Precargado: casi toda intervención es en San Juan de Lurigancho (la
+  // municipalidad solo fiscaliza dentro de su propia jurisdicción) — sigue
+  // siendo editable por si el domicilio del administrado queda en otro
+  // distrito colindante.
+  const [distrito, setDistrito] = useState('San Juan de Lurigancho');
   const [giroUso, setGiroUso] = useState('');
   const [numeroLicenciaFuncionamiento, setNumeroLicenciaFuncionamiento] = useState('');
   const [motivo, setMotivo] = useState<MotivoNoIdentificado | null>(null);
@@ -60,7 +64,7 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
       setNumeroDocumento(administrado.numeroDocumento ?? '');
       setNombresRazonSocial(administrado.nombresRazonSocial ?? '');
       setDomicilio(administrado.domicilio ?? '');
-      setDistrito(administrado.distrito ?? '');
+      setDistrito(administrado.distrito || 'San Juan de Lurigancho');
       setGiroUso(administrado.giroUso ?? '');
       setNumeroLicenciaFuncionamiento(administrado.numeroLicenciaFuncionamiento ?? '');
     });
