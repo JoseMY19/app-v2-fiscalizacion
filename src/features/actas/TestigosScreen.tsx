@@ -5,11 +5,14 @@ import { guardarTestigos, listarTestigos } from './testigos.repository';
  * Cambio de regla de negocio (2026-09-14, pedido explícito, reemplaza el
  * criterio anterior de HU-20 donde los testigos solo se pedían si el
  * administrado se negaba a identificarse/firmar): toda intervención de
- * campo, sin excepción de camino, exige registrar 2 testigos presenciales.
+ * campo, sin excepción de camino, exige registrar testigos presenciales.
  * Pantalla única y común a los 3 caminos — reemplaza el bloque condicional
  * que antes vivía dentro de NotificacionEntregaScreen (esa pantalla sigue
  * existiendo solo para EXHORTACION/CONSTATACION, que nunca tuvieron acceso
  * a ese bloque).
+ * Cambio de regla (2026-09-18): solo el testigo 1 es obligatorio, el
+ * testigo 2 pasa a ser opcional — pero si se empieza a llenar, debe
+ * completarse entero (no se guarda un testigo a medias).
  */
 import WizardHeader from '../../components/WizardHeader';
 
@@ -42,21 +45,23 @@ export default function TestigosScreen({ localId, onContinuar, onVolver }: Props
     });
   }, [localId]);
 
-  const completo =
-    testigo1Nombre.trim().length > 0 &&
-    testigo1Documento.trim().length > 0 &&
-    testigo2Nombre.trim().length > 0 &&
-    testigo2Documento.trim().length > 0;
+  const testigo1Completo = testigo1Nombre.trim().length > 0 && testigo1Documento.trim().length > 0;
+  const testigo2Vacio = testigo2Nombre.trim().length === 0 && testigo2Documento.trim().length === 0;
+  const testigo2Completo = testigo2Nombre.trim().length > 0 && testigo2Documento.trim().length > 0;
+  // Testigo 2 opcional: o se deja completamente vacío, o se llena entero —
+  // nunca se guarda a medias.
+  const completo = testigo1Completo && (testigo2Vacio || testigo2Completo);
 
   async function handleGuardar() {
     if (!completo || guardando) return;
     setGuardando(true);
     setError(null);
     try {
-      await guardarTestigos(localId, [
-        { nombre: testigo1Nombre, documento: testigo1Documento },
-        { nombre: testigo2Nombre, documento: testigo2Documento },
-      ]);
+      const testigos = [{ nombre: testigo1Nombre, documento: testigo1Documento }];
+      if (testigo2Completo) {
+        testigos.push({ nombre: testigo2Nombre, documento: testigo2Documento });
+      }
+      await guardarTestigos(localId, testigos);
       onContinuar();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo guardar los testigos.');
@@ -71,7 +76,7 @@ export default function TestigosScreen({ localId, onContinuar, onVolver }: Props
         pasoActual={6}
         totalPasos={8}
         titulo="Testigos de la Intervención"
-        subtitulo="Toda intervención requiere 2 testigos presenciales"
+        subtitulo="Toda intervención requiere al menos 1 testigo presencial"
         onVolver={onVolver}
         deshabilitarVolver={guardando}
       />
@@ -104,11 +109,11 @@ export default function TestigosScreen({ localId, onContinuar, onVolver }: Props
         </div>
 
         <h3 style={{ fontSize: '0.9375rem', marginBottom: '0.5rem', color: 'var(--color-primary-900)' }}>
-          Testigo 2 (Obligatorio)
+          Testigo 2 (Opcional)
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 140px', gap: '0.625rem' }}>
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label form-label-required">Nombre completo</label>
+            <label className="form-label">Nombre completo</label>
             <input
               type="text"
               className="form-input"
@@ -118,7 +123,7 @@ export default function TestigosScreen({ localId, onContinuar, onVolver }: Props
             />
           </div>
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label form-label-required">DNI</label>
+            <label className="form-label">DNI</label>
             <input
               type="text"
               className="form-input"
@@ -128,6 +133,11 @@ export default function TestigosScreen({ localId, onContinuar, onVolver }: Props
             />
           </div>
         </div>
+        {!testigo2Vacio && !testigo2Completo && (
+          <p style={{ fontSize: '0.75rem', color: 'var(--color-warning-text)', marginTop: '0.375rem', marginBottom: 0 }}>
+            Complete nombre y DNI del testigo 2, o borre ambos campos para dejarlo sin registrar.
+          </p>
+        )}
 
         {error && (
           <div className="alert alert-error" role="alert" style={{ marginTop: '1rem', marginBottom: 0 }}>

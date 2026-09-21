@@ -5,15 +5,22 @@ export interface DatosTestigo {
   documento: string;
 }
 
-/** HU-20: siempre exactamente 2 testigos — reemplaza los anteriores, no los acumula. */
-export async function guardarTestigos(intervencionLocalId: string, testigos: [DatosTestigo, DatosTestigo]): Promise<void> {
+/**
+ * Testigo 1 obligatorio, testigo 2 opcional (cambio de regla 2026-09-18)
+ * — reemplaza los anteriores, no los acumula.
+ */
+export async function guardarTestigos(intervencionLocalId: string, testigos: DatosTestigo[]): Promise<void> {
   await db.transaction('rw', db.testigos, async () => {
     const previos = await db.testigos.where('intervencionLocalId').equals(intervencionLocalId).toArray();
     await db.testigos.bulkDelete(previos.map((t) => t.id!));
-    await db.testigos.bulkAdd([
-      { intervencionLocalId, orden: 1, nombre: testigos[0].nombre.trim(), documento: testigos[0].documento.trim() },
-      { intervencionLocalId, orden: 2, nombre: testigos[1].nombre.trim(), documento: testigos[1].documento.trim() },
-    ]);
+    await db.testigos.bulkAdd(
+      testigos.map((t, i) => ({
+        intervencionLocalId,
+        orden: (i + 1) as 1 | 2,
+        nombre: t.nombre.trim(),
+        documento: t.documento.trim(),
+      })),
+    );
   });
 }
 
