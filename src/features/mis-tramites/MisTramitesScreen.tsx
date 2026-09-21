@@ -70,7 +70,7 @@ export default function MisTramitesScreen({ onVolver }: Props) {
         <div key={item.id} className="card" style={{ marginBottom: '0.75rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
             <div>
-              <strong>{item.numeroExpediente ?? TITULO_CAMINO[item.tipoActuacion] ?? item.tipoActuacion}</strong>
+              <strong>{item.numeroExpediente?.trim() || TITULO_CAMINO[item.tipoActuacion] || item.tipoActuacion}</strong>
               <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
                 {new Date(item.fechaHoraInicio).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
                 {' · '}
