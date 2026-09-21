@@ -7,6 +7,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 // Precachea el shell de la app; los DATOS (intervenciones, fotos) van
 // aparte en IndexedDB via Dexie (ver src/lib/db.ts), no en este cache.
 export default defineConfig({
+  // host:true = escucha en todas las interfaces (no solo localhost), para
+  // poder probar la PWA desde un celular real en la misma red.
+  server: { host: true, port: 5173 },
   resolve: {
     alias: {
       '@pas-sjl/shared-types': path.resolve(__dirname, '../../packages/shared-types/src/index.ts'),
