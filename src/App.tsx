@@ -13,6 +13,30 @@ import { socket } from './lib/socket';
 
 import AppHeader from './components/AppHeader';
 import BottomNavBar from './components/BottomNavBar';
+import { cn } from './lib/cn';
+import { alerta, appContainer, badge, btn, card, kpiChip } from './lib/ui';
+
+// Botón outline con texto/borde de peligro fijos (antes inline style, que
+// ganaba también sobre el hover).
+const btnCerrarSesion =
+  'inline-flex items-center justify-center gap-2 font-semibold rounded-md border border-solid cursor-pointer select-none w-full ' +
+  'px-[1.125rem] py-2.5 text-[0.9375rem] min-h-11 bg-white text-danger border-danger-border not-disabled:hover:bg-primary-50 ' +
+  'transition-[background-color,border-color,box-shadow,transform] duration-150 not-disabled:active:scale-[0.98]';
+
+const kpiCardBase =
+  'bg-white border border-solid rounded-lg pt-3.5 px-3.5 pb-3 flex flex-col justify-between shadow-xs transition-all duration-150 text-left cursor-pointer relative z-[2] min-h-[98px] hover:border-primary-300 hover:shadow-sm active:scale-[0.97]';
+const kpiTop = 'flex items-center justify-between mb-2.5';
+const kpiIcon = 'w-[34px] h-[34px] rounded-md flex items-center justify-center shrink-0';
+const kpiBody = 'flex flex-col gap-0.5';
+const kpiLabel = 'text-[0.8125rem] font-bold text-text-title leading-tight';
+const kpiDetail = 'text-xs text-text-muted leading-[1.2]';
+
+const menuItem =
+  'flex items-center gap-3 px-4 py-3.5 bg-transparent border-0 border-b border-solid border-border last:border-b-0 w-full text-left text-inherit transition-colors duration-150';
+const menuItemIcon = 'w-9 h-9 rounded-md flex items-center justify-center shrink-0';
+const menuItemContent = 'flex-1 min-w-0';
+const menuItemTitle = 'text-sm font-bold text-text-title';
+const menuItemDesc = 'text-xs text-text-muted whitespace-nowrap overflow-hidden text-ellipsis';
 
 type Vista =
   | { nombre: 'inicio' }
@@ -169,50 +193,37 @@ export default function App() {
     ) : vista.nombre === 'mis-tramites' ? (
       <MisTramitesScreen onVolver={() => setVista({ nombre: 'inicio' })} />
     ) : vista.nombre === 'perfil' ? (
-      <div className="app-container">
-        <div className="card" style={{ padding: '1.5rem', textAlign: 'center' }}>
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: '50%',
-              background: 'var(--color-primary-50)',
-              color: 'var(--color-primary-600)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 0.875rem auto',
-            }}
-          >
+      <div className={appContainer}>
+        <div className={cn(card(), 'p-6! text-center')}>
+          <div className="w-14 h-14 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center mx-auto mb-3.5">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>
           </div>
-          <h2 style={{ fontSize: '1.125rem', marginBottom: '0.2rem' }}>Inspector Municipal</h2>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.8125rem', marginBottom: '1.25rem' }}>
+          <h2 className="text-lg mb-[0.2rem]">Inspector Municipal</h2>
+          <p className="text-text-muted text-[0.8125rem] mb-5">
             Subgerencia de Operaciones de Fiscalización
           </p>
 
-          <div style={{ textAlign: 'left', background: 'var(--color-bg-subtle)', borderRadius: 'var(--radius-md)', padding: '0.875rem 1rem', marginBottom: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.8125rem' }}>
-              <span style={{ color: 'var(--color-text-muted)' }}>DNI / ID:</span>
-              <span style={{ fontWeight: 700 }}>{fiscalizadorDni ?? 'Sin asignar'}</span>
+          <div className="text-left bg-bg-subtle rounded-md px-4 py-3.5 mb-5">
+            <div className="flex justify-between mb-2 text-[0.8125rem]">
+              <span className="text-text-muted">DNI / ID:</span>
+              <span className="font-bold">{fiscalizadorDni ?? 'Sin asignar'}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.8125rem' }}>
-              <span style={{ color: 'var(--color-text-muted)' }}>Jurisdicción:</span>
-              <span style={{ fontWeight: 600 }}>San Juan de Lurigancho</span>
+            <div className="flex justify-between mb-2 text-[0.8125rem]">
+              <span className="text-text-muted">Jurisdicción:</span>
+              <span className="font-semibold">San Juan de Lurigancho</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
-              <span style={{ color: 'var(--color-text-muted)' }}>Estado:</span>
-              <span style={{ color: 'var(--color-success)', fontWeight: 700 }}>Activo en campo</span>
+            <div className="flex justify-between text-[0.8125rem]">
+              <span className="text-text-muted">Estado:</span>
+              <span className="text-success font-bold">Activo en campo</span>
             </div>
           </div>
 
           <button
             type="button"
-            className="btn btn-outline btn-block"
-            style={{ color: 'var(--color-danger)', borderColor: 'var(--color-danger-border)' }}
+            className={btnCerrarSesion}
             onClick={() => {
               localStorage.removeItem('pas_sjl_fiscalizador_activo');
               setTieneFiscalizador(false);
@@ -223,39 +234,39 @@ export default function App() {
         </div>
       </div>
     ) : (
-      <div className="app-container">
+      <div className={appContainer}>
         {/* Identidad del Fiscalizador */}
-        <div className="inspector-card">
-          <div className="inspector-avatar">
+        <div className="flex items-center gap-3 bg-white border border-solid border-border rounded-lg px-4 py-3 mb-4 shadow-xs relative z-[2]">
+          <div className="w-[38px] h-[38px] rounded-md bg-primary-50 text-primary-600 flex items-center justify-center shrink-0">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>
           </div>
-          <div className="inspector-info">
-            <div className="inspector-role">Fiscalizador de Campo</div>
-            <div className="inspector-id">
+          <div className="flex-1 min-w-0">
+            <div className="text-[0.7rem] font-semibold text-text-muted uppercase tracking-[0.04em] mb-[0.1rem]">Fiscalizador de Campo</div>
+            <div className="text-[0.9375rem] font-bold text-text-title whitespace-nowrap overflow-hidden text-ellipsis">
               {fiscalizadorDni ? (fiscalizadorDni.includes('-') || fiscalizadorDni.length > 12 ? `ID #${fiscalizadorDni.slice(0, 8).toUpperCase()}` : `DNI ${fiscalizadorDni}`) : 'En servicio'}
             </div>
           </div>
-          <div className="inspector-badge">MDSJL</div>
+          <div className="text-[0.6875rem] font-bold text-primary-700 bg-primary-50 border border-solid border-primary-100 px-2 py-[0.2rem] rounded-pill tracking-[0.05em] shrink-0">MDSJL</div>
         </div>
 
         {/* Tarjeta Hero Principal: Nueva Intervención */}
-        <div className="dashboard-hero">
-          <div className="dashboard-hero-badge">
+        <div className="bg-[linear-gradient(135deg,#102a71_0%,#1d3a8f_50%,#2851b3_100%)] rounded-xl px-5 py-[1.35rem] text-white shadow-[0_8px_24px_-4px_rgba(29,58,143,0.35)] mb-5 relative overflow-hidden border border-solid border-white/15 after:content-[''] after:absolute after:-top-[30px] after:-right-[30px] after:w-[130px] after:h-[130px] after:rounded-full after:bg-[radial-gradient(circle,rgba(255,255,255,0.15)_0%,rgba(255,255,255,0)_70%)] after:pointer-events-none">
+          <div className="inline-flex items-center gap-[0.35rem] px-[0.65rem] py-1 rounded-pill bg-white/20 text-white text-[0.725rem] font-bold uppercase tracking-[0.05em] mb-2.5">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
               <circle cx="12" cy="12" r="10" />
             </svg>
             <span>Operaciones de Campo</span>
           </div>
-          <h2 className="dashboard-hero-title">Nueva Fiscalización</h2>
-          <p className="dashboard-hero-desc">
+          <h2 className="text-xl font-extrabold text-white mb-[0.35rem] tracking-[-0.02em]">Nueva Fiscalización</h2>
+          <p className="text-[0.8125rem] text-white/90 mb-[1.125rem] leading-[1.4]">
             Registro de actas, evidencias y firma digital en campo
           </p>
           <button
             type="button"
-            className="dashboard-hero-btn"
+            className="bg-white text-primary-700 font-bold text-[0.9375rem] px-5 py-[0.8125rem] rounded-lg flex items-center justify-center gap-2 border-none cursor-pointer shadow-[0_4px_14px_rgba(16,42,113,0.25)] transition-[transform,box-shadow] duration-150 w-full active:scale-[0.98]"
             onClick={() => setVista({ nombre: 'nueva-intervencion' })}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -266,17 +277,17 @@ export default function App() {
         </div>
 
         {/* Grilla 2x2 de Indicadores Rápidos */}
-        <div className="dashboard-kpi-grid">
+        <div className="grid grid-cols-2 gap-3 mb-5">
           {/* KPI 1: Sincronización */}
           <button
             type="button"
-            className="dashboard-kpi-card"
+            className={cn(kpiCardBase, 'border-border')}
             onClick={handleSincronizarAhora}
             disabled={sincronizando}
             title="Tocar para forzar sincronización"
           >
-            <div className="dashboard-kpi-top">
-              <div className="dashboard-kpi-icon dashboard-kpi-icon--sync">
+            <div className={kpiTop}>
+              <div className={cn(kpiIcon, 'bg-primary-50 text-primary-700')}>
                 <svg
                   width="18"
                   height="18"
@@ -284,18 +295,18 @@ export default function App() {
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2.2"
-                  style={{ animation: sincronizando ? 'spin 1s linear infinite' : 'none' }}
+                  className={sincronizando ? 'animate-spin' : undefined}
                 >
                   <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
                 </svg>
               </div>
-              <span className={`kpi-chip ${pendientes > 0 ? 'kpi-chip--warning' : 'kpi-chip--success'}`}>
+              <span className={kpiChip(pendientes > 0 ? 'warning' : 'success')}>
                 {pendientes > 0 ? `${pendientes} pend.` : 'Al día'}
               </span>
             </div>
-            <div className="dashboard-kpi-body">
-              <div className="dashboard-kpi-label">Sincronización</div>
-              <div className="dashboard-kpi-detail">
+            <div className={kpiBody}>
+              <div className={kpiLabel}>Sincronización</div>
+              <div className={kpiDetail}>
                 {sincronizando ? 'Sincronizando…' : pendientes > 0 ? 'Tocar para enviar' : 'Expedientes al día'}
               </div>
             </div>
@@ -304,12 +315,12 @@ export default function App() {
           {/* KPI 2: Intervenciones Observadas */}
           <button
             type="button"
-            className={`dashboard-kpi-card ${observadasCount && observadasCount > 0 ? 'dashboard-kpi-card--alert' : ''}`}
+            className={cn(kpiCardBase, observadasCount && observadasCount > 0 ? 'border-warning-border' : 'border-border')}
             onClick={() => setVista({ nombre: 'observadas' })}
             title="Ver intervenciones observadas"
           >
-            <div className="dashboard-kpi-top">
-              <div className={`dashboard-kpi-icon ${observadasCount && observadasCount > 0 ? 'dashboard-kpi-icon--warning' : 'dashboard-kpi-icon--neutral'}`}>
+            <div className={kpiTop}>
+              <div className={cn(kpiIcon, observadasCount && observadasCount > 0 ? 'bg-warning-bg text-warning' : 'bg-bg-subtle text-text-muted')}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
@@ -317,18 +328,18 @@ export default function App() {
                 </svg>
               </div>
               {observadasCount && observadasCount > 0 ? (
-                <span className="kpi-chip kpi-chip--warning">
+                <span className={kpiChip('warning')}>
                   {observadasCount} por revisar
                 </span>
               ) : (
-                <span className="kpi-chip kpi-chip--neutral">
+                <span className={kpiChip('neutral')}>
                   0 casos
                 </span>
               )}
             </div>
-            <div className="dashboard-kpi-body">
-              <div className="dashboard-kpi-label">Observadas</div>
-              <div className="dashboard-kpi-detail">
+            <div className={kpiBody}>
+              <div className={kpiLabel}>Observadas</div>
+              <div className={kpiDetail}>
                 {observadasCount && observadasCount > 0 ? 'Requiere corrección' : 'Sin observaciones'}
               </div>
             </div>
@@ -336,15 +347,15 @@ export default function App() {
         </div>
 
         {/* Menú de Gestión Móvil */}
-        <div className="menu-group">
-          <div className="menu-group-header">Gestión y Expedientes</div>
+        <div className="bg-bg-card border border-solid border-border rounded-xl overflow-hidden shadow-sm mb-5">
+          <div className="text-[0.725rem] font-bold uppercase tracking-[0.06em] text-text-muted pt-3.5 px-4 pb-[0.4rem]">Gestión y Expedientes</div>
 
           <button
             type="button"
-            className="menu-item"
+            className={cn(menuItem, 'cursor-pointer active:bg-primary-50')}
             onClick={() => setVista({ nombre: 'mis-tramites' })}
           >
-            <div className="menu-item-icon">
+            <div className={cn(menuItemIcon, 'bg-primary-50 text-primary-700')}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
@@ -353,11 +364,11 @@ export default function App() {
                 <polyline points="10 9 9 9 8 9" />
               </svg>
             </div>
-            <div className="menu-item-content">
-              <div className="menu-item-title">Mis Trámites</div>
-              <div className="menu-item-desc">Historial y estado de actas</div>
+            <div className={menuItemContent}>
+              <div className={cn(menuItemTitle, 'mb-0.5')}>Mis Trámites</div>
+              <div className={menuItemDesc}>Historial y estado de actas</div>
             </div>
-            <div className="menu-item-arrow">
+            <div className="text-text-light shrink-0">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M9 18l6-6-6-6" />
               </svg>
@@ -365,20 +376,20 @@ export default function App() {
           </button>
 
           {ultimaIntervencion && (
-            <div className="menu-item" style={{ cursor: 'default' }}>
-              <div className="menu-item-icon" style={{ backgroundColor: 'var(--color-success-bg)', color: 'var(--color-success)' }}>
+            <div className={cn(menuItem, 'cursor-default active:bg-primary-50')}>
+              <div className={cn(menuItemIcon, 'bg-success-bg text-success')}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
               </div>
-              <div className="menu-item-content">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.125rem' }}>
-                  <span className="menu-item-title" style={{ margin: 0 }}>Última intervención</span>
-                  <span className="badge badge-neutral" style={{ fontSize: '0.6875rem' }}>
+              <div className={menuItemContent}>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className={cn(menuItemTitle, 'm-0')}>Última intervención</span>
+                  <span className={cn(badge('neutral'), 'text-[0.6875rem]')}>
                     #{ultimaIntervencion.localId.slice(0, 6)}
                   </span>
                 </div>
-                <div className="menu-item-desc">
+                <div className={menuItemDesc}>
                   {TITULO_CAMINO[ultimaIntervencion.camino] ?? ultimaIntervencion.camino} · {ultimaIntervencion.identificado ? 'Identificado' : 'Saneamiento'}
                 </div>
               </div>
@@ -389,11 +400,11 @@ export default function App() {
     );
 
   return (
-    <div className="app-shell">
+    <div className="flex flex-col min-h-screen bg-bg-app relative isolate">
       {/* Esquinas decorativas de fondo MDSJL (Fluido y sin lag) */}
-      <div className="bg-decorations-wrapper">
-        <div className="bg-corner-top" />
-        <div className="bg-corner-bottom" />
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-[58px] left-0 w-[150px] h-[150px] min-[480px]:w-[185px] min-[480px]:h-[185px] bg-[url('/assets/corner-top.png')] bg-no-repeat bg-contain bg-top-left opacity-70 select-none pointer-events-none" />
+        <div className="absolute bottom-[62px] right-0 w-[150px] h-[150px] min-[480px]:w-[185px] min-[480px]:h-[185px] bg-[url('/assets/corner-bottom.png')] bg-no-repeat bg-contain bg-bottom-right opacity-70 select-none pointer-events-none" />
       </div>
 
       <AppHeader
@@ -404,21 +415,21 @@ export default function App() {
       />
 
       {sesionExpirada && !mostrarLogin && (
-        <div style={{ padding: '0.75rem 1rem', maxWidth: 540, margin: '0 auto', width: '100%' }}>
-          <div className="alert alert-warning" role="alert">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+        <div className="px-4 py-3 max-w-[540px] mx-auto w-full">
+          <div className={alerta('warning')} role="alert">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 600, marginBottom: '0.125rem' }}>Sesión expirada</div>
-              <p style={{ fontSize: '0.8125rem', marginBottom: '0.5rem' }}>
+            <div className="flex-1">
+              <div className="font-semibold mb-0.5">Sesión expirada</div>
+              <p className="text-[0.8125rem] mb-2">
                 Tu sesión venció y no se pudo renovar. La sincronización queda pausada — lo que ya capturaste no se pierde.
               </p>
               <button
                 type="button"
-                className="btn btn-sm btn-primary"
+                className={btn('primary', { tamano: 'sm' })}
                 onClick={() => setMostrarLogin(true)}
               >
                 Iniciar sesión nuevamente
@@ -440,16 +451,7 @@ export default function App() {
       />
 
       {mostrarLogin && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.6)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 100,
-            overflowY: 'auto',
-          }}
-        >
+        <div className="fixed inset-0 bg-[rgba(15,23,42,0.6)] backdrop-blur-[4px] z-[100] overflow-y-auto">
           <LoginScreen
             onListo={() => {
               setSesionExpirada(false);
