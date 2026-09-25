@@ -2,6 +2,7 @@ import path from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import tailwindcss from '@tailwindcss/vite';
 
 // HT-01 del backlog: scaffold del PWA con soporte offline.
 // Precachea el shell de la app; los DATOS (intervenciones, fotos) van
@@ -20,6 +21,9 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    // Tailwind v4: genera el CSS en build; el .css resultante queda dentro
+    // de globPatterns de workbox (abajo), asi que se precachea para offline.
+    tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico'],

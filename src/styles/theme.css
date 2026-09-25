@@ -1,10 +1,16 @@
-:root {
-  /*
-   * Dirección: formal, institucional — blanco y azul medianoche (MDSJL),
-   * como pidió el negocio. Nada de acentos "de moda": el color hace un
-   * solo trabajo (identidad municipal) y la jerarquía se construye con
-   * tipografía, espaciado y contraste, no con decoración.
-   */
+/*
+ * Dirección: formal, institucional — blanco y azul medianoche (MDSJL),
+ * como pidió el negocio. Nada de acentos "de moda": el color hace un
+ * solo trabajo (identidad municipal) y la jerarquía se construye con
+ * tipografía, espaciado y contraste, no con decoración.
+ *
+ * Tokens de diseño expuestos a Tailwind v4 vía `@theme`. `static` hace que
+ * TODAS las variables se emitan en :root aunque ninguna utilidad las use,
+ * así `var(--color-...)` sigue disponible para estilos inline dinámicos.
+ * Utilidades resultantes: bg-primary-600, text-text-title, border-border,
+ * rounded-md/lg/xl/pill, shadow-xs/sm/md/lg/focus, font-body, animate-pulse-ring.
+ */
+@theme static {
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 
   /* Azul medianoche MDSJL — color de marca y de toda acción primaria. */
@@ -62,8 +68,35 @@
   --radius-xl: 20px;
   --radius-pill: 9999px;
 
+  /*
+   * Tamaños de texto sin line-height propio: el CSS original solo fijaba
+   * font-size, así que text-sm/xs/lg... heredan el interlineado del padre
+   * (o el que se ponga con leading-*), igual que antes.
+   */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: inherit;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: inherit;
+  --text-base: 1rem;
+  --text-base--line-height: inherit;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: inherit;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: inherit;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: inherit;
+
+  --animate-pulse-ring: pulse-ring 1.5s infinite;
+
+  @keyframes pulse-ring {
+    0% { transform: scale(0.9); opacity: 1; }
+    50% { transform: scale(1.6); opacity: 0.4; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+}
+
+:root {
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-
   --touch-target-min: 44px;
 }
