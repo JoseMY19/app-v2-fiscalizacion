@@ -4,6 +4,8 @@ import { guardarActaValorizacionObra } from './acta-valorizacion-obra.repository
 import CampoNumeroCorrelativo from './CampoNumeroCorrelativo';
 import { useVerificacionCorrelativo } from './useVerificacionCorrelativo';
 import AdjuntarFotoActa from '../evidencia/AdjuntarFotoActa';
+import { alerta, btn, formGroup, formInput, formLabel } from '../../lib/ui';
+import { cn } from '../../lib/cn';
 
 interface Props {
   localId: string;
@@ -35,18 +37,18 @@ export default function FormActaValorizacionObra({ localId, onGuardada }: Props)
     <div>
       <CampoNumeroCorrelativo value={numeroCorrelativo} onChange={setNumeroCorrelativo} estado={estadoCorrelativo} />
 
-      <div className="form-group">
-        <label className="form-label">Estado de la obra (opcional)</label>
+      <div className={formGroup}>
+        <label className={formLabel}>Estado de la obra (opcional)</label>
         <input
           type="text"
-          className="form-input"
+          className={formInput}
           value={estadoObra}
           onChange={(e) => setEstadoObra(e.target.value)}
           placeholder="Ej. En casco, acabado, cimientos..."
         />
       </div>
 
-      <div className="alert alert-info" style={{ fontSize: '0.8125rem' }}>
+      <div className={cn(alerta('info'), 'text-[0.8125rem]!')}>
         El monto de la multa por valorización se determina formalmente en oficina técnica, no en el aplicativo de campo.
       </div>
 
@@ -59,10 +61,9 @@ export default function FormActaValorizacionObra({ localId, onGuardada }: Props)
 
       <button
         type="button"
-        className="btn btn-primary btn-block"
+        className={cn(btn('primary', { block: true }), 'mt-[0.75rem]!')}
         onClick={handleGuardar}
         disabled={!puedeGuardar || guardando}
-        style={{ marginTop: '0.75rem' }}
       >
         {guardando ? 'Guardando…' : 'Guardar Valorización de Obra'}
       </button>

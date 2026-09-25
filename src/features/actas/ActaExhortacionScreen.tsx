@@ -21,6 +21,8 @@ import type { DatosOcrActa } from '../../lib/ocr-offline';
  */
 
 import WizardHeader from '../../components/WizardHeader';
+import { cn } from '../../lib/cn';
+import { actionsFooter, alerta, appContainer, btn, card, formGroup, formInput, formLabel, formLabelRequired, formTextarea } from '../../lib/ui';
 
 interface Props {
   localId: string;
@@ -96,7 +98,7 @@ export default function ActaExhortacionScreen({ localId, onGuardada, onVolver }:
   }
 
   return (
-    <div className="app-container">
+    <div className={appContainer}>
       <WizardHeader
         pasoActual={6}
         totalPasos={8}
@@ -106,25 +108,25 @@ export default function ActaExhortacionScreen({ localId, onGuardada, onVolver }:
         deshabilitarVolver={guardando}
       />
 
-      <div className="card">
+      <div className={card()}>
         <EscanearActaOcr tipoActa="EXHORTACION" onSugerencias={handleSugerenciasOcr} />
 
         <SelectorCodigoParaActa localId={localId} onElegido={setSeleccion} />
 
         {seleccion?.escala?.medidaProvisional && (
-          <div className="alert alert-warning" style={{ marginBottom: '1rem' }}>
+          <div className={cn(alerta('warning'), 'mb-[1rem]!')}>
             <strong>Medida provisional aplicable:</strong> {seleccion.escala.medidaProvisional}
           </div>
         )}
 
         <CampoNumeroCorrelativo value={numeroCorrelativo} onChange={setNumeroCorrelativo} estado={estadoCorrelativo} />
 
-        <div className="form-group">
-          <label className="form-label form-label-required">
+        <div className={formGroup}>
+          <label className={cn(formLabel, formLabelRequired)}>
             Presunta infracción constatada
           </label>
           <textarea
-            className="form-textarea"
+            className={formTextarea}
             value={presuntaInfraccion}
             onChange={(e) => setPresuntaInfraccion(e.target.value)}
             rows={3}
@@ -140,21 +142,21 @@ export default function ActaExhortacionScreen({ localId, onGuardada, onVolver }:
           />
         )}
 
-        <div className="form-group">
-          <label className="form-label">Plazo de subsanación voluntaria (opcional)</label>
+        <div className={formGroup}>
+          <label className={formLabel}>Plazo de subsanación voluntaria (opcional)</label>
           <input
             type="text"
-            className="form-input"
+            className={formInput}
             value={plazoSubsanacion}
             onChange={(e) => setPlazoSubsanacion(e.target.value)}
             placeholder="Ej. 5 días hábiles"
           />
         </div>
 
-        <div className="form-group" style={{ marginBottom: 0 }}>
-          <label className="form-label">Observaciones adicionales (opcional)</label>
+        <div className={cn(formGroup, 'mb-0!')}>
+          <label className={formLabel}>Observaciones adicionales (opcional)</label>
           <textarea
-            className="form-textarea"
+            className={formTextarea}
             value={observaciones}
             onChange={(e) => setObservaciones(e.target.value)}
             rows={2}
@@ -163,8 +165,8 @@ export default function ActaExhortacionScreen({ localId, onGuardada, onVolver }:
         </div>
 
         {error && (
-          <div className="alert alert-error" role="alert" style={{ marginTop: '1rem', marginBottom: 0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+          <div className={cn(alerta('error'), 'mt-[1rem]! mb-0!')} role="alert">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -181,10 +183,10 @@ export default function ActaExhortacionScreen({ localId, onGuardada, onVolver }:
         onCambio={setTieneFotoActa}
       />
 
-      <div className="actions-footer">
+      <div className={actionsFooter}>
         <button
           type="button"
-          className="btn btn-primary btn-block btn-lg"
+          className={btn('primary', { tamano: 'lg', block: true })}
           onClick={handleGuardar}
           disabled={!puedeGuardar || guardando}
         >

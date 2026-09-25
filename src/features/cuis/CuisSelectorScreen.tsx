@@ -28,6 +28,8 @@ import { etiquetaEscala } from './etiqueta-escala';
  */
 
 import WizardHeader from '../../components/WizardHeader';
+import { actionsFooter, alerta, appContainer, badge, btn, card, customList, customListItem, customListItemHeader, formGroup, formHint, formInput, formLabel, optionCard, optionCardContent, optionCardDesc, optionCardTitle, optionsGrid } from '../../lib/ui';
+import { cn } from '../../lib/cn';
 
 interface Props {
   localId: string;
@@ -95,43 +97,43 @@ export default function CuisSelectorScreen({ localId, onContinuar, onVolver }: P
 
   if (codigoPendienteDeEscala) {
     return (
-      <div className="app-container">
-        <div className="card" style={{ borderTop: '4px solid var(--color-primary-600)' }}>
-          <div style={{ marginBottom: '1rem' }}>
-            <span className="badge badge-primary" style={{ fontSize: '0.875rem', marginBottom: '0.375rem' }}>
+      <div className={appContainer}>
+        <div className={cn(card(), 'border-t-[4px]! border-solid! border-t-primary-600!')}>
+          <div className="mb-[1rem]">
+            <span className={cn(badge('primary'), 'text-[0.875rem]! mb-[0.375rem]!')}>
               Código {codigoPendienteDeEscala.codigo}
             </span>
-            <h2 style={{ fontSize: '1.125rem', marginTop: '0.25rem' }}>Seleccionar Escala de Gravedad</h2>
-            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+            <h2 className="text-[1.125rem] mt-[0.25rem]">Seleccionar Escala de Gravedad</h2>
+            <p className="text-[0.875rem] text-text-muted">
               {codigoPendienteDeEscala.descripcion}
             </p>
           </div>
 
-          <div className="alert alert-info">
+          <div className={alerta('info')}>
             Este código cuenta con múltiples condiciones tarifarias. Selecciona la escala correspondiente al hecho constatado:
           </div>
 
-          <div className="options-grid">
+          <div className={optionsGrid}>
             {codigoPendienteDeEscala.escalas.map((escala) => (
               <div
                 key={escala.id}
-                className="option-card"
+                className={optionCard(false)}
                 onClick={() => handleConfirmarEscala(codigoPendienteDeEscala, escala)}
                 role="button"
                 tabIndex={0}
               >
-                <div className="option-card-content">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                    <span className="option-card-title">{etiquetaEscala(escala.escala)}</span>
-                    <span className="badge badge-primary">{escala.porcentaje}% UIT</span>
+                <div className={optionCardContent}>
+                  <div className="flex items-center justify-between gap-[0.5rem]">
+                    <span className={optionCardTitle}>{etiquetaEscala(escala.escala)}</span>
+                    <span className={badge('primary')}>{escala.porcentaje}% UIT</span>
                   </div>
                   {escala.condicion && (
-                    <div className="option-card-desc" style={{ marginTop: '0.25rem' }}>
+                    <div className={cn(optionCardDesc, 'mt-[0.25rem]!')}>
                       {escala.condicion}
                     </div>
                   )}
                   {escala.medidaProvisional && (
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-warning)', marginTop: '0.25rem' }}>
+                    <div className="text-[0.75rem] text-warning mt-[0.25rem]">
                       Medida prov.: {escala.medidaProvisional}
                     </div>
                   )}
@@ -142,9 +144,8 @@ export default function CuisSelectorScreen({ localId, onContinuar, onVolver }: P
 
           <button
             type="button"
-            className="btn btn-secondary btn-block"
+            className={cn(btn('secondary', { block: true }), 'mt-[0.75rem]!')}
             onClick={() => setCodigoPendienteDeEscala(null)}
-            style={{ marginTop: '0.75rem' }}
           >
             Cancelar
           </button>
@@ -154,7 +155,7 @@ export default function CuisSelectorScreen({ localId, onContinuar, onVolver }: P
   }
 
   return (
-    <div className="app-container">
+    <div className={appContainer}>
       <WizardHeader
         pasoActual={4}
         totalPasos={8}
@@ -164,42 +165,41 @@ export default function CuisSelectorScreen({ localId, onContinuar, onVolver }: P
       />
 
       {catalogoVacio && (
-        <div className="alert alert-warning" role="alert">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+        <div className={alerta('warning')} role="alert">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="8" x2="12" y2="12" />
             <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 600 }}>Catálogo local vacío</div>
-            <p style={{ fontSize: '0.8125rem', marginBottom: '0.5rem' }}>
+          <div className="flex-1">
+            <div className="font-semibold">Catálogo local vacío</div>
+            <p className="text-[0.8125rem] mb-[0.5rem]">
               El catálogo CUIS aún no se ha descargado a este dispositivo. Si tienes conexión, sincronízalo ahora.
             </p>
             <button
               type="button"
-              className="btn btn-sm btn-primary"
+              className={btn('primary', { tamano: 'sm' })}
               onClick={handleSincronizar}
               disabled={sincronizando}
             >
               {sincronizando ? 'Sincronizando…' : 'Descargar catálogo CUIS'}
             </button>
-            {errorSync && <p role="alert" style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errorSync}</p>}
+            {errorSync && <p role="alert" className="text-danger text-[0.75rem] mt-[0.25rem]">{errorSync}</p>}
           </div>
         </div>
       )}
 
       {/* Buscador de Infracciones */}
-      <div className="card">
-        <div className="form-group" style={{ marginBottom: 0 }}>
-          <label className="form-label">Buscar por código o descripción</label>
-          <div style={{ position: 'relative' }}>
+      <div className={card()}>
+        <div className={cn(formGroup, 'mb-0!')}>
+          <label className={formLabel}>Buscar por código o descripción</label>
+          <div className="relative">
             <input
               type="text"
-              className="form-input"
+              className={cn(formInput, 'pl-[2.25rem]!')}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Ej. 7.01.06, residuos, ruidos, licencia…"
-              style={{ paddingLeft: '2.25rem' }}
             />
             <svg
               width="16"
@@ -207,9 +207,7 @@ export default function CuisSelectorScreen({ localId, onContinuar, onVolver }: P
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
-              style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }}
-            >
+              strokeWidth="2" className="absolute left-[0.75rem] top-[50%] -translate-y-1/2 text-text-muted">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
@@ -217,29 +215,29 @@ export default function CuisSelectorScreen({ localId, onContinuar, onVolver }: P
         </div>
 
         {query.trim().length > 0 && (
-          <div style={{ marginTop: '0.75rem' }}>
-            <span className="form-hint" style={{ display: 'block', marginBottom: '0.5rem' }}>
+          <div className="mt-[0.75rem]">
+            <span className={cn(formHint, 'block! mb-[0.5rem]!')}>
               Resultados encontrados ({resultados.length})
             </span>
             {resultados.length === 0 ? (
-              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', textAlign: 'center', padding: '1rem 0' }}>
+              <p className="text-[0.875rem] text-text-muted text-center py-[1rem] px-0">
                 No se encontraron códigos que coincidan con "{query}".
               </p>
             ) : (
-              <ul className="custom-list" style={{ maxHeight: '260px', overflowY: 'auto' }}>
+              <ul className={cn(customList, 'max-h-[260px]! overflow-y-auto!')}>
                 {resultados.map((r) => (
-                  <li key={r.id} className="custom-list-item">
-                    <div className="custom-list-item-header">
-                      <span className="badge badge-primary">{r.codigo}</span>
+                  <li key={r.id} className={customListItem}>
+                    <div className={customListItemHeader}>
+                      <span className={badge('primary')}>{r.codigo}</span>
                       <button
                         type="button"
-                        className="btn btn-sm btn-outline"
+                        className={btn('outline', { tamano: 'sm' })}
                         onClick={() => handleElegir(r)}
                       >
                         + Agregar
                       </button>
                     </div>
-                    <p style={{ fontSize: '0.8125rem', marginBottom: 0, color: 'var(--color-text-body)' }}>
+                    <p className="text-[0.8125rem] mb-0 text-text-body">
                       {r.descripcion ?? '(Sin descripción detallada)'}
                     </p>
                   </li>
@@ -251,48 +249,48 @@ export default function CuisSelectorScreen({ localId, onContinuar, onVolver }: P
       </div>
 
       {/* Códigos Seleccionados */}
-      <div className="card">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-          <h2 style={{ fontSize: '1rem', margin: 0 }}>
+      <div className={card()}>
+        <div className="flex items-center justify-between mb-[0.75rem]">
+          <h2 className="text-[1rem] m-0">
             Infracciones seleccionadas
           </h2>
-          <span className={`badge ${seleccionados.length > 0 ? 'badge-success' : 'badge-neutral'}`}>
+          <span className={badge(seleccionados.length > 0 ? 'success' : 'neutral')}>
             {seleccionados.length} código(s)
           </span>
         </div>
 
         {seleccionados.length === 0 ? (
-          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: 0, padding: '0.5rem 0' }}>
+          <p className="text-[0.875rem] text-text-muted mb-0 py-[0.5rem] px-0">
             Todavía no has seleccionado ningún código de infracción. Puedes buscar en el catálogo arriba.
           </p>
         ) : (
-          <ul className="custom-list">
+          <ul className={customList}>
             {seleccionados.map(({ registro, codigo, escala }) => (
-              <li key={registro.id} className="custom-list-item" style={{ borderLeft: '3px solid var(--color-primary-600)' }}>
-                <div className="custom-list-item-header">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span className="badge badge-primary">{codigo.codigo}</span>
+              <li key={registro.id} className={cn(customListItem, 'border-l-[3px]! border-solid! border-l-primary-600!')}>
+                <div className={customListItemHeader}>
+                  <div className="flex items-center gap-[0.5rem]">
+                    <span className={badge('primary')}>{codigo.codigo}</span>
                     {escala && (
-                      <span className="badge badge-neutral">
+                      <span className={badge('neutral')}>
                         {etiquetaEscala(escala.escala)} ({escala.porcentaje}% UIT)
                       </span>
                     )}
                   </div>
                   <button
                     type="button"
-                    className="btn btn-sm btn-danger"
+                    className={btn('danger', { tamano: 'sm' })}
                     onClick={() => handleQuitar(registro.id)}
                   >
                     Quitar
                   </button>
                 </div>
 
-                <div style={{ fontSize: '0.875rem', color: 'var(--color-text-body)' }}>
+                <div className="text-[0.875rem] text-text-body">
                   {codigo.descripcion}
                 </div>
 
                 {escala && (
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                  <div className="text-[0.75rem] text-text-muted">
                     {escala.condicion && <div><strong>Condición:</strong> {escala.condicion}</div>}
                     <div>
                       <strong>Medida provisional:</strong> {escala.medidaProvisional ?? 'No aplica'}
@@ -305,10 +303,10 @@ export default function CuisSelectorScreen({ localId, onContinuar, onVolver }: P
         )}
       </div>
 
-      <div className="actions-footer">
+      <div className={actionsFooter}>
         <button
           type="button"
-          className="btn btn-primary btn-block btn-lg"
+          className={btn('primary', { tamano: 'lg', block: true })}
           onClick={onContinuar}
         >
           <span>Continuar</span>

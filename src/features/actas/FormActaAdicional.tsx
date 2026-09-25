@@ -4,6 +4,8 @@ import { guardarActaAdicional } from './acta-adicional.repository';
 import CampoNumeroCorrelativo from './CampoNumeroCorrelativo';
 import { useVerificacionCorrelativo } from './useVerificacionCorrelativo';
 import AdjuntarFotoActa from '../evidencia/AdjuntarFotoActa';
+import { btn, formGroup, formLabel, formTextarea } from '../../lib/ui';
+import { cn } from '../../lib/cn';
 
 /** HU-14: formato aún no cerrado por el área legal (erd-sp1-decisiones.md §2.5) — detalle es texto libre. */
 interface Props {
@@ -37,10 +39,10 @@ export default function FormActaAdicional({ localId, tipo, onGuardada }: Props) 
     <div>
       <CampoNumeroCorrelativo value={numeroCorrelativo} onChange={setNumeroCorrelativo} estado={estadoCorrelativo} />
 
-      <div className="form-group">
-        <label className="form-label">Detalle circunstanciado (opcional)</label>
+      <div className={formGroup}>
+        <label className={formLabel}>Detalle circunstanciado (opcional)</label>
         <textarea
-          className="form-textarea"
+          className={formTextarea}
           value={detalle}
           onChange={(e) => setDetalle(e.target.value)}
           rows={2}
@@ -57,10 +59,9 @@ export default function FormActaAdicional({ localId, tipo, onGuardada }: Props) 
 
       <button
         type="button"
-        className="btn btn-primary btn-block"
+        className={cn(btn('primary', { block: true }), 'mt-[0.75rem]!')}
         onClick={handleGuardar}
         disabled={!puedeGuardar || guardando}
-        style={{ marginTop: '0.75rem' }}
       >
         {guardando ? 'Guardando…' : `Guardar ${tipo === 'RETENCION_VEHICULO' ? 'Retención de Vehículo' : 'Decomiso'}`}
       </button>

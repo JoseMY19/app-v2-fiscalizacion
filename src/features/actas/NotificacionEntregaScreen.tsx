@@ -18,6 +18,8 @@ import { guardarEntregaNotificacionCargo, obtenerNotificacionCargo } from './not
  */
 
 import WizardHeader from '../../components/WizardHeader';
+import { cn } from '../../lib/cn';
+import { actionsFooter, alerta, appContainer, btn, card, formGroup, formInput, formLabel, formLabelRequired, formTextarea, optionCard, optionCardContent, optionCardDesc, optionCardTitle, optionRadio, optionRadioDot, optionsGrid } from '../../lib/ui';
 
 interface Props {
   localId: string;
@@ -84,7 +86,7 @@ export default function NotificacionEntregaScreen({ localId, onContinuar, onVolv
   }
 
   return (
-    <div className="app-container">
+    <div className={appContainer}>
       <WizardHeader
         pasoActual={6}
         totalPasos={8}
@@ -95,65 +97,63 @@ export default function NotificacionEntregaScreen({ localId, onContinuar, onVolv
       />
 
       {/* Tarjeta 1: Constancia de Negativa */}
-      <div className="card">
-        <label className="form-label" style={{ marginBottom: '0.75rem' }}>
+      <div className={card()}>
+        <label className={cn(formLabel, 'mb-[0.75rem]!')}>
           Constancia física de negativa (si aplica)
         </label>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-          <label className={`option-card ${seNegoIdentificarse ? 'option-card--selected' : ''}`} style={{ cursor: 'pointer' }}>
+        <div className="flex flex-col gap-[0.625rem]">
+          <label className={cn(optionCard(seNegoIdentificarse), 'cursor-pointer!')}>
             <input
               type="checkbox"
               checked={seNegoIdentificarse}
-              onChange={(e) => setSeNegoIdentificarse(e.target.checked)}
-              style={{ width: 18, height: 18, accentColor: 'var(--color-primary-600)' }}
+              onChange={(e) => setSeNegoIdentificarse(e.target.checked)} className="w-[18px] h-[18px] accent-primary-600"
             />
-            <span className="option-card-title">El administrado se negó a identificarse</span>
+            <span className={optionCardTitle}>El administrado se negó a identificarse</span>
           </label>
 
-          <label className={`option-card ${seNegoFirmar ? 'option-card--selected' : ''}`} style={{ cursor: 'pointer' }}>
+          <label className={cn(optionCard(seNegoFirmar), 'cursor-pointer!')}>
             <input
               type="checkbox"
               checked={seNegoFirmar}
-              onChange={(e) => setSeNegoFirmar(e.target.checked)}
-              style={{ width: 18, height: 18, accentColor: 'var(--color-primary-600)' }}
+              onChange={(e) => setSeNegoFirmar(e.target.checked)} className="w-[18px] h-[18px] accent-primary-600"
             />
-            <span className="option-card-title">El administrado se negó a firmar el cargo físico</span>
+            <span className={optionCardTitle}>El administrado se negó a firmar el cargo físico</span>
           </label>
         </div>
       </div>
 
       {/* Tarjeta 2: características del domicilio, si hubo negativa */}
       {hayNegativa && (
-        <div className="card card--warning">
-          <h3 style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted)', margin: '0 0 0.5rem 0' }}>
+        <div className={card('warning')}>
+          <h3 className="text-[0.875rem] uppercase tracking-[0.05em] text-text-muted mt-0 mr-0 mb-[0.5rem] ml-0">
             Características del Inmueble (Opcional)
           </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
+          <div className="grid grid-cols-[1fr_1fr_1fr] gap-[0.5rem] mb-[0.5rem]">
             <input
               type="text"
-              className="form-input"
+              className={formInput}
               value={domicilioPuertas}
               onChange={(e) => setDomicilioPuertas(e.target.value)}
               placeholder="Puertas (color/mat.)"
             />
             <input
               type="text"
-              className="form-input"
+              className={formInput}
               value={domicilioPisos}
               onChange={(e) => setDomicilioPisos(e.target.value)}
               placeholder="N° de pisos"
             />
             <input
               type="text"
-              className="form-input"
+              className={formInput}
               value={domicilioNumeroSuministro}
               onChange={(e) => setDomicilioNumeroSuministro(e.target.value)}
               placeholder="N° Suministro luz/agua"
             />
           </div>
           <textarea
-            className="form-textarea"
+            className={formTextarea}
             value={domicilioObservaciones}
             onChange={(e) => setDomicilioObservaciones(e.target.value)}
             rows={2}
@@ -163,24 +163,24 @@ export default function NotificacionEntregaScreen({ localId, onContinuar, onVolv
       )}
 
       {/* Tarjeta 3: ¿Se entregó en el acto? */}
-      <div className="card">
-        <label className="form-label form-label-required" style={{ marginBottom: '0.75rem' }}>
+      <div className={card()}>
+        <label className={cn(formLabel, formLabelRequired, 'mb-[0.75rem]!')}>
           ¿Se entregó la Notificación de Cargo en el acto?
         </label>
 
-        <div className="options-grid">
+        <div className={optionsGrid}>
           <div
-            className={`option-card ${entregadaEnElActo === true ? 'option-card--selected' : ''}`}
+            className={optionCard(entregadaEnElActo === true)}
             onClick={() => setEntregadaEnElActo(true)}
             role="button"
             tabIndex={0}
           >
-            <div className="option-radio">
-              <div className="option-radio-dot" />
+            <div className={optionRadio(entregadaEnElActo === true)}>
+              <div className={optionRadioDot(entregadaEnElActo === true)} />
             </div>
-            <div className="option-card-content">
-              <div className="option-card-title">Sí, entregada en el acto</div>
-              <div className="option-card-desc">
+            <div className={optionCardContent}>
+              <div className={optionCardTitle}>Sí, entregada en el acto</div>
+              <div className={optionCardDesc}>
                 {seNegoFirmar ? 'Se registra la negativa a firmar, ' : 'Se registra la firma, '}
                 con fecha y hora actual.
               </div>
@@ -188,17 +188,17 @@ export default function NotificacionEntregaScreen({ localId, onContinuar, onVolv
           </div>
 
           <div
-            className={`option-card ${entregadaEnElActo === false ? 'option-card--selected' : ''}`}
+            className={optionCard(entregadaEnElActo === false)}
             onClick={() => setEntregadaEnElActo(false)}
             role="button"
             tabIndex={0}
           >
-            <div className="option-radio">
-              <div className="option-radio-dot" />
+            <div className={optionRadio(entregadaEnElActo === false)}>
+              <div className={optionRadioDot(entregadaEnElActo === false)} />
             </div>
-            <div className="option-card-content">
-              <div className="option-card-title">No entregada en el acto</div>
-              <div className="option-card-desc">
+            <div className={optionCardContent}>
+              <div className={optionCardTitle}>No entregada en el acto</div>
+              <div className={optionCardDesc}>
                 Queda como "pendiente de notificación domiciliaria".
               </div>
             </div>
@@ -206,36 +206,36 @@ export default function NotificacionEntregaScreen({ localId, onContinuar, onVolv
         </div>
 
         {entregadaEnElActo === true && (
-          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
-            <h3 style={{ fontSize: '0.9375rem', marginBottom: '0.75rem', color: 'var(--color-primary-900)' }}>
+          <div className="mt-[1rem] pt-[1rem] border-t border-solid border-t-border">
+            <h3 className="text-[0.9375rem] mb-[0.75rem] text-primary-900">
               Datos del Receptor (si fue persona distinta o adicional)
             </h3>
-            <div className="form-group">
-              <label className="form-label">Nombre del receptor (opcional)</label>
+            <div className={formGroup}>
+              <label className={formLabel}>Nombre del receptor (opcional)</label>
               <input
                 type="text"
-                className="form-input"
+                className={formInput}
                 value={receptorNombre}
                 onChange={(e) => setReceptorNombre(e.target.value)}
                 placeholder="Nombres y apellidos de quien recepciona"
               />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-              <div className="form-group">
-                <label className="form-label">DNI / Documento</label>
+            <div className="grid grid-cols-[1fr_1fr] gap-[0.75rem]">
+              <div className={formGroup}>
+                <label className={formLabel}>DNI / Documento</label>
                 <input
                   type="text"
-                  className="form-input"
+                  className={formInput}
                   value={receptorDocumento}
                   onChange={(e) => setReceptorDocumento(e.target.value)}
                   placeholder="N° de identidad"
                 />
               </div>
-              <div className="form-group">
-                <label className="form-label">Relación con administrado</label>
+              <div className={formGroup}>
+                <label className={formLabel}>Relación con administrado</label>
                 <input
                   type="text"
-                  className="form-input"
+                  className={formInput}
                   value={receptorRelacion}
                   onChange={(e) => setReceptorRelacion(e.target.value)}
                   placeholder="Empleado, cónyuge, etc."
@@ -246,8 +246,8 @@ export default function NotificacionEntregaScreen({ localId, onContinuar, onVolv
         )}
 
         {error && (
-          <div className="alert alert-error" role="alert" style={{ marginTop: '1rem', marginBottom: 0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+          <div className={cn(alerta('error'), 'mt-[1rem]! mb-0!')} role="alert">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -257,10 +257,10 @@ export default function NotificacionEntregaScreen({ localId, onContinuar, onVolv
         )}
       </div>
 
-      <div className="actions-footer">
+      <div className={actionsFooter}>
         <button
           type="button"
-          className="btn btn-primary btn-block btn-lg"
+          className={btn('primary', { tamano: 'lg', block: true })}
           onClick={handleGuardar}
           disabled={!puedeGuardar || guardando}
         >

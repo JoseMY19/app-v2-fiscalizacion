@@ -8,6 +8,8 @@ import type { FirmaLocal } from '../../lib/db';
  * del administrado no se captura digitalmente aquí).
  */
 import WizardHeader from '../../components/WizardHeader';
+import { actionsFooter, appContainer, badge, btn, card, formHint } from '../../lib/ui';
+import { cn } from '../../lib/cn';
 
 interface Props {
   localId: string;
@@ -48,7 +50,7 @@ export default function FirmaScreen({ localId, onContinuar, onVolver }: Props) {
   const mostrarPanel = rehaciendo || !firmaGuardada;
 
   return (
-    <div className="app-container">
+    <div className={appContainer}>
       <WizardHeader
         pasoActual={8}
         totalPasos={8}
@@ -57,39 +59,28 @@ export default function FirmaScreen({ localId, onContinuar, onVolver }: Props) {
         onVolver={onVolver}
       />
 
-      <div className="card">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-          <span style={{ fontWeight: 600, fontSize: '0.9375rem', color: 'var(--color-primary-900)' }}>
+      <div className={card()}>
+        <div className="flex items-center justify-between mb-[1rem]">
+          <span className="font-semibold text-[0.9375rem] text-primary-900">
             Firma digitalizada
           </span>
-          <span className={`badge ${firmaGuardada ? 'badge-success' : 'badge-warning'}`}>
+          <span className={badge(firmaGuardada ? 'success' : 'warning')}>
             {firmaGuardada ? 'Firma Registrada' : 'Pendiente'}
           </span>
         </div>
 
         {!mostrarPanel && previewUrl && (
-          <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-            <div
-              style={{
-                display: 'inline-block',
-                padding: '0.75rem 1.5rem',
-                backgroundColor: 'var(--color-white)',
-                border: '1.5px solid var(--color-border)',
-                borderRadius: 'var(--radius-md)',
-                boxShadow: 'var(--shadow-xs)',
-                marginBottom: '1rem',
-              }}
-            >
+          <div className="text-center py-[1rem] px-0">
+            <div className="inline-block py-[0.75rem] px-[1.5rem] bg-white border-[1.5px] border-solid border-border rounded-md shadow-xs mb-[1rem]">
               <img
                 src={previewUrl}
-                alt="Firma del inspector fiscalizador"
-                style={{ maxHeight: '110px', maxWidth: '100%', display: 'block', margin: '0 auto' }}
+                alt="Firma del inspector fiscalizador" className="max-h-[110px] max-w-full block my-0 mx-auto"
               />
             </div>
             <div>
               <button
                 type="button"
-                className="btn btn-sm btn-outline"
+                className={btn('outline', { tamano: 'sm' })}
                 onClick={() => setRehaciendo(true)}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -107,9 +98,8 @@ export default function FirmaScreen({ localId, onContinuar, onVolver }: Props) {
             {rehaciendo && (
               <button
                 type="button"
-                className="btn btn-sm btn-secondary btn-block"
+                className={cn(btn('secondary', { tamano: 'sm', block: true }), 'mt-[0.5rem]!')}
                 onClick={() => setRehaciendo(false)}
-                style={{ marginTop: '0.5rem' }}
               >
                 Cancelar y mantener firma previa
               </button>
@@ -118,10 +108,10 @@ export default function FirmaScreen({ localId, onContinuar, onVolver }: Props) {
         )}
       </div>
 
-      <div className="actions-footer">
+      <div className={actionsFooter}>
         <button
           type="button"
-          className="btn btn-primary btn-block btn-lg"
+          className={btn('primary', { tamano: 'lg', block: true })}
           onClick={onContinuar}
         >
           <span>Revisar Resumen y Finalizar</span>
@@ -130,7 +120,7 @@ export default function FirmaScreen({ localId, onContinuar, onVolver }: Props) {
           </svg>
         </button>
         {!firmaGuardada && (
-          <p className="form-hint" style={{ textAlign: 'center', color: 'var(--color-warning, #b45309)' }}>
+          <p className={cn(formHint, 'text-center! text-warning!')}>
             No has capturado firma — puedes continuar sin ella por ahora (HU-18 despriorizada).
           </p>
         )}

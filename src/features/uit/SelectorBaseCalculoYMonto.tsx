@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { BaseCalculo, calcularMontoPasibleMulta } from '@pas-sjl/shared-types';
 import { obtenerUitVigenteLocal, sincronizarParametrosUit, uitCacheEstaVacio } from './uit-cache.repository';
+import { cn } from '../../lib/cn';
+import { alerta, badge, btn, formGroup, formLabel, formLabelRequired, optionCard, optionCardContent, optionCardTitle, optionRadio, optionRadioDot, optionsGrid } from '../../lib/ui';
 
 /**
  * HU-11/HU-13: baseCalculo lo elige el fiscalizador explícitamente, sin
@@ -70,26 +72,25 @@ export default function SelectorBaseCalculoYMonto({ porcentajeUit, fecha, onResu
   }
 
   return (
-    <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-      <label className="form-label form-label-required">Base de cálculo</label>
+    <div className={cn(formGroup, 'mb-[1.25rem]!')}>
+      <label className={cn(formLabel, formLabelRequired)}>Base de cálculo</label>
 
-      <div className="options-grid" style={{ marginBottom: '0.75rem' }}>
+      <div className={cn(optionsGrid, 'mb-[0.75rem]!')}>
         {OPCIONES.map((opcion) => {
           const isSelected = baseCalculo === opcion.valor;
           return (
             <div
               key={opcion.valor}
-              className={`option-card ${isSelected ? 'option-card--selected' : ''}`}
+              className={cn(optionCard(isSelected), 'py-[0.625rem]! px-[0.875rem]!')}
               onClick={() => calcular(opcion.valor)}
               role="button"
               tabIndex={0}
-              style={{ padding: '0.625rem 0.875rem' }}
             >
-              <div className="option-radio">
-                <div className="option-radio-dot" />
+              <div className={optionRadio(isSelected)}>
+                <div className={optionRadioDot(isSelected)} />
               </div>
-              <div className="option-card-content">
-                <div className="option-card-title" style={{ fontSize: '0.875rem' }}>
+              <div className={optionCardContent}>
+                <div className={cn(optionCardTitle, 'text-[0.875rem]!')}>
                   {opcion.etiqueta}
                 </div>
               </div>
@@ -99,58 +100,48 @@ export default function SelectorBaseCalculoYMonto({ porcentajeUit, fecha, onResu
       </div>
 
       {baseCalculo === BaseCalculo.UIT_FIJO && uitVacio && (
-        <div className="alert alert-warning" role="alert">
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 600 }}>Parámetro UIT no disponible</div>
-            <p style={{ fontSize: '0.8125rem', marginBottom: '0.5rem' }}>
+        <div className={alerta('warning')} role="alert">
+          <div className="flex-1">
+            <div className="font-semibold">Parámetro UIT no disponible</div>
+            <p className="text-[0.8125rem] mb-[0.5rem]">
               El valor de la UIT vigente no está en el dispositivo. Si tienes conexión, sincronízalo ahora.
             </p>
             <button
               type="button"
-              className="btn btn-sm btn-primary"
+              className={btn('primary', { tamano: 'sm' })}
               onClick={handleSincronizarUit}
               disabled={sincronizando}
             >
               {sincronizando ? 'Sincronizando…' : 'Sincronizar UIT'}
             </button>
-            {error && <p role="alert" style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{error}</p>}
+            {error && <p role="alert" className="text-danger text-[0.75rem] mt-[0.25rem]">{error}</p>}
           </div>
         </div>
       )}
 
       {baseCalculo === BaseCalculo.UIT_FIJO && porcentajeUit === undefined && (
-        <div className="alert alert-warning" role="alert">
+        <div className={alerta('warning')} role="alert">
           No se puede calcular automáticamente: el código seleccionado no cuenta con porcentaje UIT definido.
         </div>
       )}
 
       {baseCalculo && baseCalculo !== BaseCalculo.UIT_FIJO && (
-        <div className="alert alert-info">
+        <div className={alerta('info')}>
           Cálculo no aplicable en campo: la cuantificación se determinará en gabinete (oficina técnica).
         </div>
       )}
 
       {baseCalculo === BaseCalculo.UIT_FIJO && monto !== null && (
-        <div
-          style={{
-            padding: '1rem',
-            backgroundColor: 'var(--color-primary-50)',
-            border: '1.5px solid var(--color-primary-200)',
-            borderRadius: 'var(--radius-md)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
+        <div className="p-[1rem] bg-primary-50 border-[1.5px] border-solid border-primary-200 rounded-md flex items-center justify-between">
           <div>
-            <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-primary-800)', fontWeight: 600 }}>
+            <div className="text-[0.75rem] uppercase tracking-[0.05em] text-primary-800 font-semibold">
               Monto pasible de multa ({porcentajeUit}% UIT)
             </div>
-            <div style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--color-primary-900)', marginTop: '0.125rem' }}>
+            <div className="text-[1.375rem] font-bold text-primary-900 mt-[0.125rem]">
               S/ {monto.toFixed(2)}
             </div>
           </div>
-          <span className="badge badge-primary">Cálculo Automático</span>
+          <span className={badge('primary')}>Cálculo Automático</span>
         </div>
       )}
     </div>

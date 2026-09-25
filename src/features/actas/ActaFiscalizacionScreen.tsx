@@ -16,6 +16,8 @@ import type { DatosOcrActa } from '../../lib/ocr-offline';
  */
 
 import WizardHeader from '../../components/WizardHeader';
+import { cn } from '../../lib/cn';
+import { actionsFooter, alerta, appContainer, badge, btn, card, formGroup, formHint, formLabel, formLabelRequired, formTextarea } from '../../lib/ui';
 
 interface Props {
   localId: string;
@@ -72,7 +74,7 @@ export default function ActaFiscalizacionScreen({ localId, onGuardada, onVolver 
   const cumpleMinimo = longitudHechos >= HECHOS_VERIFICADOS_MIN_CARACTERES;
 
   return (
-    <div className="app-container">
+    <div className={appContainer}>
       <WizardHeader
         pasoActual={6}
         totalPasos={8}
@@ -82,38 +84,38 @@ export default function ActaFiscalizacionScreen({ localId, onGuardada, onVolver 
         deshabilitarVolver={guardando}
       />
 
-      <div className="card">
+      <div className={card()}>
         <EscanearActaOcr tipoActa="FISCALIZACION" onSugerencias={handleSugerenciasOcr} />
 
         <CampoNumeroCorrelativo value={numeroCorrelativo} onChange={setNumeroCorrelativo} estado={estadoCorrelativo} />
 
-        <div className="form-group">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.375rem' }}>
-            <label className="form-label form-label-required" style={{ marginBottom: 0 }}>
+        <div className={formGroup}>
+          <div className="flex items-center justify-between mb-[0.375rem]">
+            <label className={cn(formLabel, formLabelRequired, 'mb-0!')}>
               Hechos verificados
             </label>
-            <span className={`badge ${cumpleMinimo ? 'badge-success' : 'badge-warning'}`}>
+            <span className={badge(cumpleMinimo ? 'success' : 'warning')}>
               {longitudHechos}/{HECHOS_VERIFICADOS_MIN_CARACTERES} car. mín.
             </span>
           </div>
           <textarea
-            className="form-textarea"
+            className={formTextarea}
             value={hechosVerificados}
             onChange={(e) => setHechosVerificados(e.target.value)}
             rows={5}
             placeholder="Detalle circunstanciado y objetivo de lo observado por el fiscalizador en la inspección..."
           />
-          <span className="form-hint">
+          <span className={formHint}>
             Mínimo {HECHOS_VERIFICADOS_MIN_CARACTERES} caracteres para validez probatoria.
           </span>
         </div>
 
-        <div className="form-group" style={{ marginBottom: 0 }}>
-          <label className="form-label">
+        <div className={cn(formGroup, 'mb-0!')}>
+          <label className={formLabel}>
             Observaciones formuladas por el administrado (opcional)
           </label>
           <textarea
-            className="form-textarea"
+            className={formTextarea}
             value={observacionesAdministrado}
             onChange={(e) => setObservacionesAdministrado(e.target.value)}
             rows={3}
@@ -122,8 +124,8 @@ export default function ActaFiscalizacionScreen({ localId, onGuardada, onVolver 
         </div>
 
         {error && (
-          <div className="alert alert-error" role="alert" style={{ marginTop: '1rem', marginBottom: 0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+          <div className={cn(alerta('error'), 'mt-[1rem]! mb-0!')} role="alert">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -140,10 +142,10 @@ export default function ActaFiscalizacionScreen({ localId, onGuardada, onVolver 
         onCambio={setTieneFotoActa}
       />
 
-      <div className="actions-footer">
+      <div className={actionsFooter}>
         <button
           type="button"
-          className="btn btn-primary btn-block btn-lg"
+          className={btn('primary', { tamano: 'lg', block: true })}
           onClick={handleGuardar}
           disabled={!puedeGuardar || guardando}
         >

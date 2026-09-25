@@ -1,4 +1,6 @@
 import { textoEstadoCorrelativo, type EstadoCorrelativo } from './useVerificacionCorrelativo';
+import { cn } from '../../lib/cn';
+import { badge, formGroup, formHint, formInput, formLabel, formLabelRequired } from '../../lib/ui';
 
 /** HU-16: input + estado de verificación de unicidad, reutilizado por todas las actas. */
 interface Props {
@@ -12,37 +14,34 @@ export default function CampoNumeroCorrelativo({ value, onChange, estado }: Prop
 
   const getBadgeClass = () => {
     switch (estado) {
-      case 'disponible': return 'badge-success';
-      case 'duplicado': return 'badge-danger';
-      case 'verificando': return 'badge-primary';
-      case 'sin_verificar': return 'badge-warning';
-      default: return 'badge-neutral';
+      case 'disponible': return 'success' as const;
+      case 'duplicado': return 'danger' as const;
+      case 'verificando': return 'primary' as const;
+      case 'sin_verificar': return 'warning' as const;
+      default: return 'neutral' as const;
     }
   };
 
   return (
-    <div className="form-group">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.375rem' }}>
-        <label className="form-label form-label-required" style={{ marginBottom: 0 }}>
+    <div className={formGroup}>
+      <div className="flex items-center justify-between mb-[0.375rem]">
+        <label className={cn(formLabel, formLabelRequired, 'mb-0!')}>
           N° correlativo físico
         </label>
         {texto && (
-          <span className={`badge ${getBadgeClass()}`}>
+          <span className={badge(getBadgeClass())}>
             {texto}
           </span>
         )}
       </div>
       <input
         type="text"
-        className={`form-input ${estado === 'duplicado' ? 'input-error' : ''}`}
+        className={cn(formInput, estado === 'duplicado' && 'border-danger!', estado === 'disponible' && 'border-success!')}
         placeholder="Ej. 001254"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        style={{
-          borderColor: estado === 'duplicado' ? 'var(--color-danger)' : estado === 'disponible' ? 'var(--color-success)' : undefined,
-        }}
       />
-      <span className="form-hint">Número pre-impreso en el talonario o formato físico oficial.</span>
+      <span className={formHint}>Número pre-impreso en el talonario o formato físico oficial.</span>
     </div>
   );
 }

@@ -6,6 +6,8 @@ import { useVerificacionCorrelativo } from './useVerificacionCorrelativo';
 import AdjuntarFotoActa from '../evidencia/AdjuntarFotoActa';
 import EscanearActaOcr from './EscanearActaOcr';
 import type { DatosOcrActa } from '../../lib/ocr-offline';
+import { cn } from '../../lib/cn';
+import { btn, formGroup, formInput, formLabel, formLabelRequired, formTextarea, optionCard, optionCardContent, optionCardTitle, optionRadio, optionRadioDot, optionsGrid } from '../../lib/ui';
 
 /**
  * HU-14 — Acta de Medida Provisional. tipoMedida: CLAUSURA/PARALIZACION
@@ -83,25 +85,24 @@ export default function FormActaMedidaProvisional({ localId, onGuardada }: Props
 
       <CampoNumeroCorrelativo value={numeroCorrelativo} onChange={setNumeroCorrelativo} estado={estadoCorrelativo} />
 
-      <div className="form-group">
-        <label className="form-label form-label-required">Tipo de medida provisional</label>
-        <div className="options-grid" style={{ marginBottom: 0 }}>
+      <div className={formGroup}>
+        <label className={cn(formLabel, formLabelRequired)}>Tipo de medida provisional</label>
+        <div className={cn(optionsGrid, 'mb-0!')}>
           {OPCIONES.map((opcion) => {
             const isSelected = tipoMedida === opcion.valor;
             return (
               <div
                 key={opcion.valor}
-                className={`option-card ${isSelected ? 'option-card--selected' : ''}`}
+                className={cn(optionCard(isSelected), 'py-[0.625rem]! px-[0.875rem]!')}
                 onClick={() => setTipoMedida(opcion.valor)}
                 role="button"
                 tabIndex={0}
-                style={{ padding: '0.625rem 0.875rem' }}
               >
-                <div className="option-radio">
-                  <div className="option-radio-dot" />
+                <div className={optionRadio(isSelected)}>
+                  <div className={optionRadioDot(isSelected)} />
                 </div>
-                <div className="option-card-content">
-                  <div className="option-card-title">{opcion.etiqueta}</div>
+                <div className={optionCardContent}>
+                  <div className={optionCardTitle}>{opcion.etiqueta}</div>
                 </div>
               </div>
             );
@@ -109,34 +110,34 @@ export default function FormActaMedidaProvisional({ localId, onGuardada }: Props
         </div>
       </div>
 
-      <div className="form-group">
-        <label className={`form-label ${requiereDescripcion ? 'form-label-required' : ''}`}>
+      <div className={formGroup}>
+        <label className={cn(formLabel, requiereDescripcion && formLabelRequired)}>
           Descripción {requiereDescripcion ? '(indica qué tipo de medida es)' : '(opcional)'}
         </label>
         <input
           type="text"
-          className="form-input"
+          className={formInput}
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
           placeholder={requiereDescripcion ? 'Ej. Retiro del animal, cancelación de espectáculo público...' : 'Ej. Clausura temporal del establecimiento comercial'}
         />
       </div>
 
-      <div className="form-group">
-        <label className="form-label">Lugar de ejecución (opcional)</label>
+      <div className={formGroup}>
+        <label className={formLabel}>Lugar de ejecución (opcional)</label>
         <input
           type="text"
-          className="form-input"
+          className={formInput}
           value={lugarEjecucion}
           onChange={(e) => setLugarEjecucion(e.target.value)}
           placeholder="Ej. Puerta de acceso principal"
         />
       </div>
 
-      <div className="form-group">
-        <label className="form-label">Observaciones formuladas por el administrado (opcional)</label>
+      <div className={formGroup}>
+        <label className={formLabel}>Observaciones formuladas por el administrado (opcional)</label>
         <textarea
-          className="form-textarea"
+          className={formTextarea}
           value={observacionesAdministrado}
           onChange={(e) => setObservacionesAdministrado(e.target.value)}
           rows={2}
@@ -153,10 +154,9 @@ export default function FormActaMedidaProvisional({ localId, onGuardada }: Props
 
       <button
         type="button"
-        className="btn btn-primary btn-block"
+        className={cn(btn('primary', { block: true }), 'mt-[0.75rem]!')}
         onClick={handleGuardar}
         disabled={!puedeGuardar || guardando}
-        style={{ marginTop: '0.75rem' }}
       >
         {guardando ? 'Guardando…' : 'Guardar Medida Provisional'}
       </button>

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { escanearActaConInternet } from './ocr.repository';
 import { escanearActaSinConexion, type DatosOcrActa } from '../../lib/ocr-offline';
+import { alerta, btn, formHint } from '../../lib/ui';
+import { cn } from '../../lib/cn';
 
 /**
  * Botón de escaneo opcional para pre-llenar campos de texto libre desde
@@ -64,18 +66,17 @@ export default function EscanearActaOcr({ tipoActa, onSugerencias }: Props) {
   const leyendo = estado === 'leyendo-nube' || estado === 'leyendo-local';
 
   return (
-    <div style={{ marginBottom: '1rem' }}>
+    <div className="mb-[1rem]">
       <label
-        className="btn btn-outline"
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', cursor: leyendo ? 'not-allowed' : 'pointer' }}
+        className={cn(btn('outline'), 'flex! items-center! justify-center! gap-2!', leyendo ? 'cursor-not-allowed!' : 'cursor-pointer!')}
+
       >
         <input
           type="file"
           accept="image/*"
           capture="environment"
           onChange={(e) => handleArchivo(e.target.files)}
-          disabled={leyendo}
-          style={{ display: 'none' }}
+          disabled={leyendo} className="hidden"
         />
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
@@ -87,12 +88,12 @@ export default function EscanearActaOcr({ tipoActa, onSugerencias }: Props) {
           {!leyendo && 'Escanear acta física y sugerir campos'}
         </span>
       </label>
-      <p className="form-hint" style={{ marginTop: '0.375rem' }}>
+      <p className={cn(formHint, 'mt-[0.375rem]!')}>
         Opcional: toma foto del acta ya llena a mano. Los campos se rellenan como sugerencia — siempre revísalos antes de guardar.
       </p>
 
       {modoUsado && (
-        <div className="alert alert-success" role="status" style={{ marginTop: '0.5rem' }}>
+        <div className={cn(alerta('success'), 'mt-[0.5rem]!')} role="status">
           <span>
             Sugerencias aplicadas ({modoUsado === 'nube' ? 'lectura en línea' : 'lectura sin conexión, revisa con más cuidado'}) — verifica cada campo antes de guardar.
           </span>
@@ -100,7 +101,7 @@ export default function EscanearActaOcr({ tipoActa, onSugerencias }: Props) {
       )}
 
       {error && (
-        <div className="alert alert-error" role="alert" style={{ marginTop: '0.5rem' }}>
+        <div className={cn(alerta('error'), 'mt-[0.5rem]!')} role="alert">
           <span>{error}</span>
         </div>
       )}

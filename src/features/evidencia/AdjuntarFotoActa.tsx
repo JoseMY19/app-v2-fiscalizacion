@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { agregarFoto, eliminarFoto, listarFotosPorActaTipo } from './fotos.repository';
 import type { FotoLocal } from '../../lib/db';
+import { alerta, badge, btn, card, formHint, photoGrid, photoItem, photoItemImg, photoItemRemove } from '../../lib/ui';
+import { cn } from '../../lib/cn';
 
 /**
  * Foto del acta física firmada, adjunta directo en la pantalla del acta
@@ -64,33 +66,26 @@ export default function AdjuntarFotoActa({ intervencionLocalId, actaTipo, obliga
   }
 
   return (
-    <div className="card" style={{ marginTop: '1rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-        <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-primary-900)' }}>
+    <div className={cn(card(), 'mt-[1rem]!')}>
+      <div className="flex items-center justify-between mb-[0.75rem]">
+        <span className="font-semibold text-[0.875rem] text-primary-900">
           {label ?? 'Foto del acta física firmada'}
-          {obligatoria && <span style={{ color: 'var(--color-danger)' }}> *</span>}
+          {obligatoria && <span className="text-danger"> *</span>}
         </span>
-        {fotos.length > 0 && <span className="badge badge-success">Adjunta</span>}
+        {fotos.length > 0 && <span className={badge('success')}>Adjunta</span>}
       </div>
 
       {fotos.length === 0 && (
         <label
-          className="btn btn-outline"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.5rem',
-            cursor: procesando ? 'not-allowed' : 'pointer',
-          }}
+          className={cn(btn('outline'), 'flex! items-center! justify-center! gap-2!', procesando ? 'cursor-not-allowed!' : 'cursor-pointer!')}
+
         >
           <input
             type="file"
             accept="image/*"
             capture="environment"
             onChange={(e) => handleArchivo(e.target.files)}
-            disabled={procesando}
-            style={{ display: 'none' }}
+            disabled={procesando} className="hidden"
           />
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
@@ -101,19 +96,19 @@ export default function AdjuntarFotoActa({ intervencionLocalId, actaTipo, obliga
       )}
 
       {error && (
-        <div className="alert alert-error" role="alert" style={{ marginTop: '0.75rem' }}>
+        <div className={cn(alerta('error'), 'mt-[0.75rem]!')} role="alert">
           <span>{error}</span>
         </div>
       )}
 
       {fotos.length > 0 && (
-        <div className="photo-grid">
+        <div className={photoGrid}>
           {fotos.map((foto) => (
-            <div key={foto.id} className="photo-item">
-              {foto.id !== undefined && previews[foto.id] && <img src={previews[foto.id]} alt="Acta física firmada" />}
+            <div key={foto.id} className={photoItem}>
+              {foto.id !== undefined && previews[foto.id] && <img src={previews[foto.id]} alt="Acta física firmada" className={photoItemImg} />}
               <button
                 type="button"
-                className="photo-item-remove"
+                className={photoItemRemove}
                 onClick={() => handleEliminar(foto.id)}
                 title="Eliminar foto"
               >
@@ -125,7 +120,7 @@ export default function AdjuntarFotoActa({ intervencionLocalId, actaTipo, obliga
       )}
 
       {obligatoria && fotos.length === 0 && (
-        <p className="form-hint" style={{ color: 'var(--color-danger)', marginTop: '0.5rem', marginBottom: 0 }}>
+        <p className={cn(formHint, 'text-danger! mt-[0.5rem]! mb-0!')}>
           Debes adjuntar la foto del acta firmada para continuar.
         </p>
       )}

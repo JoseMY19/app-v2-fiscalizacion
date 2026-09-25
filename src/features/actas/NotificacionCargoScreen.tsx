@@ -18,6 +18,8 @@ import AdjuntarFotoActa from '../evidencia/AdjuntarFotoActa';
  */
 
 import WizardHeader from '../../components/WizardHeader';
+import { actionsFooter, alerta, appContainer, btn, card, formGroup, formInput, formLabel } from '../../lib/ui';
+import { cn } from '../../lib/cn';
 
 interface Props {
   localId: string;
@@ -94,7 +96,7 @@ export default function NotificacionCargoScreen({ localId, onGuardada, onVolver 
   }
 
   return (
-    <div className="app-container">
+    <div className={appContainer}>
       <WizardHeader
         pasoActual={6}
         totalPasos={8}
@@ -105,14 +107,14 @@ export default function NotificacionCargoScreen({ localId, onGuardada, onVolver 
       />
 
       {/* Tarjeta de Datos Heredados */}
-      <div className="card" style={{ backgroundColor: 'var(--color-bg-subtle)' }}>
-        <h2 style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
+      <div className={cn(card(), 'bg-bg-subtle!')}>
+        <h2 className="text-[0.875rem] uppercase tracking-[0.05em] text-text-muted mb-[0.5rem]">
           Datos Heredados de la Intervención
         </h2>
-        <p style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+        <p className="text-[0.875rem] mb-[0.25rem]">
           <strong>Administrado:</strong> {resumen?.administrado ?? 'Cargando…'}
         </p>
-        <p style={{ fontSize: '0.875rem', marginBottom: '0.75rem' }}>
+        <p className="text-[0.875rem] mb-[0.75rem]">
           <strong>Ubicación:</strong> {resumen?.ubicacion ?? 'Cargando…'}
         </p>
 
@@ -120,8 +122,8 @@ export default function NotificacionCargoScreen({ localId, onGuardada, onVolver 
       </div>
 
       {/* Tarjeta de Datos de la NC */}
-      <div className="card">
-        <h2 style={{ fontSize: '1rem', marginBottom: '1rem' }}>
+      <div className={card()}>
+        <h2 className="text-[1rem] mb-[1rem]">
           Datos de la Notificación de Cargo
         </h2>
 
@@ -135,24 +137,24 @@ export default function NotificacionCargoScreen({ localId, onGuardada, onVolver 
           />
         )}
 
-        <div className="form-group">
-          <label className="form-label">
+        <div className={formGroup}>
+          <label className={formLabel}>
             Medida complementaria sugerida (opcional)
           </label>
           <input
             type="text"
-            className="form-input"
+            className={formInput}
             value={medidaComplementaria}
             onChange={(e) => setMedidaComplementaria(e.target.value)}
             placeholder="Ej. Clausura temporal, decomiso o demolición"
           />
         </div>
 
-        <div className="form-group" style={{ marginBottom: 0 }}>
-          <label className="form-label">Placa de rodaje (solo si aplica)</label>
+        <div className={cn(formGroup, 'mb-0!')}>
+          <label className={formLabel}>Placa de rodaje (solo si aplica)</label>
           <input
             type="text"
-            className="form-input"
+            className={formInput}
             value={placaRodaje}
             onChange={(e) => setPlacaRodaje(e.target.value.toUpperCase())}
             placeholder="Ej. ABC-123"
@@ -160,8 +162,8 @@ export default function NotificacionCargoScreen({ localId, onGuardada, onVolver 
         </div>
 
         {error && (
-          <div className="alert alert-error" role="alert" style={{ marginTop: '1rem', marginBottom: 0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+          <div className={cn(alerta('error'), 'mt-[1rem]! mb-0!')} role="alert">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -178,10 +180,10 @@ export default function NotificacionCargoScreen({ localId, onGuardada, onVolver 
         onCambio={setTieneFotoActa}
       />
 
-      <div className="actions-footer">
+      <div className={actionsFooter}>
         <button
           type="button"
-          className="btn btn-primary btn-block btn-lg"
+          className={btn('primary', { tamano: 'lg', block: true })}
           onClick={handleGuardar}
           disabled={!puedeGuardar || guardando}
         >

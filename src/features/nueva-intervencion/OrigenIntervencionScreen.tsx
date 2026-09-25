@@ -12,6 +12,8 @@ import { actualizarOrigenIntervencion } from './intervenciones.repository';
  */
 
 import WizardHeader from '../../components/WizardHeader';
+import { cn } from '../../lib/cn';
+import { actionsFooter, alerta, appContainer, btn, card, formGroup, formHint, formInput, formLabel, formLabelRequired, optionCard, optionCardContent, optionCardDesc, optionCardTitle, optionRadio, optionRadioDot, optionsGrid } from '../../lib/ui';
 
 const OPCIONES: { valor: OrigenIntervencion; etiqueta: string; descripcion: string }[] = [
   { valor: OrigenIntervencion.DENUNCIA, etiqueta: 'Denuncia administrativa', descripcion: 'Por reclamo ciudadano o expediente de mesa de partes' },
@@ -60,7 +62,7 @@ export default function OrigenIntervencionScreen({ localId, onContinuar, onVolve
   }
 
   return (
-    <div className="app-container">
+    <div className={appContainer}>
       <WizardHeader
         pasoActual={2}
         totalPasos={8}
@@ -70,28 +72,28 @@ export default function OrigenIntervencionScreen({ localId, onContinuar, onVolve
         deshabilitarVolver={guardando}
       />
 
-      <div className="card">
-        <label className="form-label form-label-required" style={{ marginBottom: '0.75rem' }}>
+      <div className={card()}>
+        <label className={cn(formLabel, formLabelRequired, 'mb-[0.75rem]!')}>
           ¿Cuál es la procedencia de esta intervención?
         </label>
 
-        <div className="options-grid">
+        <div className={optionsGrid}>
           {OPCIONES.map((opcion) => {
             const isSelected = origen === opcion.valor;
             return (
               <div
                 key={opcion.valor}
-                className={`option-card ${isSelected ? 'option-card--selected' : ''}`}
+                className={optionCard(isSelected)}
                 onClick={() => setOrigen(opcion.valor)}
                 role="button"
                 tabIndex={0}
               >
-                <div className="option-radio">
-                  <div className="option-radio-dot" />
+                <div className={optionRadio(isSelected)}>
+                  <div className={optionRadioDot(isSelected)} />
                 </div>
-                <div className="option-card-content">
-                  <div className="option-card-title">{opcion.etiqueta}</div>
-                  <div className="option-card-desc">{opcion.descripcion}</div>
+                <div className={optionCardContent}>
+                  <div className={optionCardTitle}>{opcion.etiqueta}</div>
+                  <div className={optionCardDesc}>{opcion.descripcion}</div>
                 </div>
               </div>
             );
@@ -99,25 +101,25 @@ export default function OrigenIntervencionScreen({ localId, onContinuar, onVolve
         </div>
 
         {requiereReferencia && (
-          <div className="form-group" style={{ marginTop: '1.25rem', marginBottom: 0 }}>
-            <label className="form-label form-label-required">
+          <div className={cn(formGroup, 'mt-[1.25rem]! mb-0!')}>
+            <label className={cn(formLabel, formLabelRequired)}>
               Referencia documental (N° de memo, expediente o remitente)
             </label>
             <input
               type="text"
-              className="form-input"
+              className={formInput}
               value={referencia}
               onChange={(e) => setReferencia(e.target.value)}
               placeholder="Ej. Memo N° 142-2026-SGCM-GSE/MDSJL"
               autoFocus
             />
-            <span className="form-hint">Dato obligatorio para actuaciones derivadas.</span>
+            <span className={formHint}>Dato obligatorio para actuaciones derivadas.</span>
           </div>
         )}
 
         {error && (
-          <div className="alert alert-error" role="alert" style={{ marginTop: '1rem', marginBottom: 0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+          <div className={cn(alerta('error'), 'mt-[1rem]! mb-0!')} role="alert">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -127,10 +129,10 @@ export default function OrigenIntervencionScreen({ localId, onContinuar, onVolve
         )}
       </div>
 
-      <div className="actions-footer">
+      <div className={actionsFooter}>
         <button
           type="button"
-          className="btn btn-primary btn-block btn-lg"
+          className={btn('primary', { tamano: 'lg', block: true })}
           onClick={handleContinuar}
           disabled={!puedeContinuar || guardando}
         >

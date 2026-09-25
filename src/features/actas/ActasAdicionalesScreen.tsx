@@ -30,6 +30,8 @@ interface Props {
 }
 
 import WizardHeader from '../../components/WizardHeader';
+import { actionsFooter, alerta, appContainer, badge, btn, card } from '../../lib/ui';
+import { cn } from '../../lib/cn';
 
 export default function ActasAdicionalesScreen({ localId, onContinuar, onVolver }: Props) {
   const [sugiereValorizacionObra, setSugiereValorizacionObra] = useState(false);
@@ -79,7 +81,7 @@ export default function ActasAdicionalesScreen({ localId, onContinuar, onVolver 
   }
 
   return (
-    <div className="app-container">
+    <div className={appContainer}>
       <WizardHeader
         pasoActual={6}
         totalPasos={8}
@@ -88,7 +90,7 @@ export default function ActasAdicionalesScreen({ localId, onContinuar, onVolver 
         onVolver={onVolver}
       />
 
-      <div className="alert alert-info">
+      <div className={alerta('info')}>
         Ninguna de estas actas es obligatoria. Habilita únicamente aquellas medidas cautelares o complementarias que se hayan ejecutado en el operativo.
       </div>
 
@@ -100,18 +102,17 @@ export default function ActasAdicionalesScreen({ localId, onContinuar, onVolver 
         return (
           <div
             key={tipo}
-            className={`card ${sugerida ? 'card--highlight' : ''}`}
-            style={{ marginBottom: '1rem' }}
+            className={cn(card(sugerida ? 'highlight' : 'default'), 'mb-[1rem]!')}
           >
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <div className="flex items-start justify-between gap-[0.5rem] mb-[0.75rem]">
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  <h2 style={{ fontSize: '1rem', margin: 0 }}>{titulo}</h2>
+                <div className="flex items-center gap-[0.5rem] flex-wrap">
+                  <h2 className="text-[1rem] m-0">{titulo}</h2>
                   {sugerida && (
-                    <span className="badge badge-warning">Sugerida por CUIS</span>
+                    <span className={badge('warning')}>Sugerida por CUIS</span>
                   )}
                   {cantidadGuardada > 0 && (
-                    <span className="badge badge-success">{cantidadGuardada} registrada(s)</span>
+                    <span className={badge('success')}>{cantidadGuardada} registrada(s)</span>
                   )}
                 </div>
               </div>
@@ -119,7 +120,7 @@ export default function ActasAdicionalesScreen({ localId, onContinuar, onVolver 
               {!estaHabilitada && (
                 <button
                   type="button"
-                  className="btn btn-sm btn-outline"
+                  className={btn('outline', { tamano: 'sm' })}
                   onClick={() => habilitar(tipo)}
                 >
                   + Habilitar
@@ -128,7 +129,7 @@ export default function ActasAdicionalesScreen({ localId, onContinuar, onVolver 
             </div>
 
             {estaHabilitada && (
-              <div style={{ paddingTop: '0.75rem', borderTop: '1px solid var(--color-border)' }}>
+              <div className="pt-[0.75rem] border-t border-solid border-t-border">
                 {tipo === 'MEDIDA_PROVISIONAL' && (
                   <FormActaMedidaProvisional localId={localId} onGuardada={() => marcarGuardada(tipo)} />
                 )}
@@ -144,10 +145,10 @@ export default function ActasAdicionalesScreen({ localId, onContinuar, onVolver 
         );
       })}
 
-      <div className="actions-footer">
+      <div className={actionsFooter}>
         <button
           type="button"
-          className="btn btn-primary btn-block btn-lg"
+          className={btn('primary', { tamano: 'lg', block: true })}
           onClick={onContinuar}
         >
           <span>Continuar a Evidencia Fotográfica</span>

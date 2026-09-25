@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { listarObservadas, obtenerBundleIntervencion, type IntervencionObservada } from './intervenciones-observadas.repository';
 import { rehidratarDesdeServidor } from './rehidratar-intervencion.repository';
+import { cn } from '../../lib/cn';
+import { alerta, appContainer, badge, btn, btnIconBack, card, screenHeaderCard, screenHeaderInfo, screenHeaderSubtitle, screenHeaderTitle } from '../../lib/ui';
 
 /**
  * V-01/V-02: bandeja del propio fiscalizador de intervenciones devueltas
@@ -40,11 +42,11 @@ export default function ObservadasScreen({ onCorregir, onVolver }: Props) {
   }
 
   return (
-    <div className="app-container">
-      <div className="screen-header-card">
+    <div className={appContainer}>
+      <div className={screenHeaderCard}>
         <button
           type="button"
-          className="btn-icon-back"
+          className={btnIconBack}
           onClick={onVolver}
           aria-label="Volver al inicio"
           title="Volver"
@@ -53,41 +55,41 @@ export default function ObservadasScreen({ onCorregir, onVolver }: Props) {
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
         </button>
-        <div className="screen-header-info">
-          <h1 className="screen-header-title">Intervenciones observadas</h1>
-          <p className="screen-header-subtitle">Expedientes que requieren subsanación</p>
+        <div className={screenHeaderInfo}>
+          <h1 className={screenHeaderTitle}>Intervenciones observadas</h1>
+          <p className={screenHeaderSubtitle}>Expedientes que requieren subsanación</p>
         </div>
         {items && items.length > 0 && (
-          <span className="badge badge-warning" style={{ fontSize: '0.75rem' }}>
+          <span className={badge('warning')}>
             {items.length}
           </span>
         )}
       </div>
 
       {error && (
-        <div className="alert alert-error" role="alert" style={{ marginBottom: '1rem' }}>
+        <div className={alerta('error')} role="alert">
           <span>{error}</span>
         </div>
       )}
 
       {items === null && !error && (
-        <p style={{ color: 'var(--color-text-muted)' }}>Cargando…</p>
+        <p className="text-text-muted">Cargando…</p>
       )}
 
       {items && items.length === 0 && (
-        <p style={{ color: 'var(--color-text-muted)' }}>No tienes intervenciones observadas pendientes de corrección.</p>
+        <p className="text-text-muted">No tienes intervenciones observadas pendientes de corrección.</p>
       )}
 
       {items?.map((item) => (
-        <div key={item.id} className="card" style={{ marginBottom: '0.75rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
+        <div key={item.id} className={cn(card(), 'mb-3!')}>
+          <div className="flex justify-between items-center gap-3">
             <div>
               <strong>{item.numeroExpediente}</strong>
-              <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--color-text-body)' }}>{item.motivo}</p>
+              <p className="mt-1 mb-0 text-sm text-text-body">{item.motivo}</p>
             </div>
             <button
               type="button"
-              className="btn btn-sm btn-primary"
+              className={btn('primary', { tamano: 'sm' })}
               disabled={cargandoId === item.id}
               onClick={() => handleCorregir(item.id)}
             >

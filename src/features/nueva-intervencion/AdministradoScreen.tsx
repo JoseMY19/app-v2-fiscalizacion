@@ -20,6 +20,8 @@ import { validarNumeroDocumento, type TipoDocumentoAdministrado } from './valida
  */
 
 import WizardHeader from '../../components/WizardHeader';
+import { cn } from '../../lib/cn';
+import { actionsFooter, alerta, appContainer, btn, card, formGroup, formInput, formLabel, formLabelRequired, formSelect, optionCard, optionCardContent, optionCardDesc, optionCardTitle, optionRadio, optionRadioDot, optionsGrid, saneamientoNotice, saneamientoNoticeDesc, saneamientoNoticeIcon, saneamientoNoticeTitle, sectionLabel, sectionLabelRequired } from '../../lib/ui';
 
 const MOTIVOS: { valor: MotivoNoIdentificado; etiqueta: string; desc: string }[] = [
   { valor: MotivoNoIdentificado.VIA_PUBLICA, etiqueta: 'Vía pública', desc: 'Comercio o actividad realizada en espacio público sin puesto fijo' },
@@ -113,7 +115,7 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
 
   if (mostrandoNoIdentificado) {
     return (
-      <div className="app-container">
+      <div className={appContainer}>
         <WizardHeader
           pasoActual={3}
           totalPasos={8}
@@ -123,9 +125,9 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
           deshabilitarVolver={guardando}
         />
 
-        <div className="card">
-          <div className="saneamiento-notice">
-            <div className="saneamiento-notice-icon">
+        <div className={card()}>
+          <div className={saneamientoNotice}>
+            <div className={saneamientoNoticeIcon}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="12" y1="8" x2="12" y2="12" />
@@ -133,35 +135,35 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
               </svg>
             </div>
             <div>
-              <div className="saneamiento-notice-title">Pendiente de saneamiento legal</div>
-              <div className="saneamiento-notice-desc">
+              <div className={saneamientoNoticeTitle}>Pendiente de saneamiento legal</div>
+              <div className={saneamientoNoticeDesc}>
                 La intervención continuará el proceso y quedará marcada para regularización en gabinete.
               </div>
             </div>
           </div>
 
-          <div className="section-label">
+          <div className={sectionLabel}>
             <span>Selecciona el motivo de no identificación</span>
-            <span className="section-label-required">*</span>
+            <span className={sectionLabelRequired}>*</span>
           </div>
 
-          <div className="options-grid">
+          <div className={optionsGrid}>
             {MOTIVOS.map((opcion) => {
               const isSelected = motivo === opcion.valor;
               return (
                 <div
                   key={opcion.valor}
-                  className={`option-card ${isSelected ? 'option-card--selected' : ''}`}
+                  className={optionCard(isSelected)}
                   onClick={() => setMotivo(opcion.valor)}
                   role="button"
                   tabIndex={0}
                 >
-                  <div className="option-radio">
-                    <div className="option-radio-dot" />
+                  <div className={optionRadio(isSelected)}>
+                    <div className={optionRadioDot(isSelected)} />
                   </div>
-                  <div className="option-card-content">
-                    <div className="option-card-title">{opcion.etiqueta}</div>
-                    <div className="option-card-desc">{opcion.desc}</div>
+                  <div className={optionCardContent}>
+                    <div className={optionCardTitle}>{opcion.etiqueta}</div>
+                    <div className={optionCardDesc}>{opcion.desc}</div>
                   </div>
                 </div>
               );
@@ -169,10 +171,10 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
           </div>
         </div>
 
-        <div className="actions-footer">
+        <div className={actionsFooter}>
           <button
             type="button"
-            className="btn btn-primary btn-block btn-lg"
+            className={btn('primary', { tamano: 'lg', block: true })}
             onClick={handleConfirmarNoIdentificado}
             disabled={!motivo || guardando}
           >
@@ -180,7 +182,7 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
           </button>
           <button
             type="button"
-            className="btn btn-outline btn-block"
+            className={btn('outline', { block: true })}
             onClick={() => setMostrandoNoIdentificado(false)}
             disabled={guardando}
           >
@@ -192,7 +194,7 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
   }
 
   return (
-    <div className="app-container">
+    <div className={appContainer}>
       <WizardHeader
         pasoActual={3}
         totalPasos={8}
@@ -202,12 +204,12 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
         deshabilitarVolver={guardando}
       />
 
-      <div className="card">
-        <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '0.75rem' }}>
-          <div className="form-group">
-            <label className="form-label form-label-required">Tipo doc.</label>
+      <div className={card()}>
+        <div className="grid grid-cols-[120px_1fr] gap-[0.75rem]">
+          <div className={formGroup}>
+            <label className={cn(formLabel, formLabelRequired)}>Tipo doc.</label>
             <select
-              className="form-select"
+              className={formSelect}
               value={tipoDocumento}
               onChange={(e) => setTipoDocumento(e.target.value as TipoDocumentoAdministrado)}
             >
@@ -217,11 +219,11 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
             </select>
           </div>
 
-          <div className="form-group">
-            <label className="form-label form-label-required">N° de documento</label>
+          <div className={formGroup}>
+            <label className={cn(formLabel, formLabelRequired)}>N° de documento</label>
             <input
               type="text"
-              className="form-input"
+              className={formInput}
               value={numeroDocumento}
               onChange={(e) => setNumeroDocumento(e.target.value)}
               placeholder="N° de identidad"
@@ -229,45 +231,45 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
           </div>
         </div>
 
-        <div className="form-group">
-          <label className="form-label form-label-required">Nombres / Razón social</label>
+        <div className={formGroup}>
+          <label className={cn(formLabel, formLabelRequired)}>Nombres / Razón social</label>
           <input
             type="text"
-            className="form-input"
+            className={formInput}
             value={nombresRazonSocial}
             onChange={(e) => setNombresRazonSocial(e.target.value)}
             placeholder="Nombre completo o razón social comercial"
           />
         </div>
 
-        <div className="form-group">
-          <label className="form-label form-label-required">Domicilio intervenido</label>
+        <div className={formGroup}>
+          <label className={cn(formLabel, formLabelRequired)}>Domicilio intervenido</label>
           <input
             type="text"
-            className="form-input"
+            className={formInput}
             value={domicilio}
             onChange={(e) => setDomicilio(e.target.value)}
             placeholder="Av., Jr., Calle, N° o Mz. Lt."
           />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-          <div className="form-group">
-            <label className="form-label form-label-required">Distrito</label>
+        <div className="grid grid-cols-[1fr_1fr] gap-[0.75rem]">
+          <div className={formGroup}>
+            <label className={cn(formLabel, formLabelRequired)}>Distrito</label>
             <input
               type="text"
-              className="form-input"
+              className={formInput}
               value={distrito}
               onChange={(e) => setDistrito(e.target.value)}
               placeholder="San Juan de Lurigancho"
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label form-label-required">Giro / Actividad</label>
+          <div className={formGroup}>
+            <label className={cn(formLabel, formLabelRequired)}>Giro / Actividad</label>
             <input
               type="text"
-              className="form-input"
+              className={formInput}
               value={giroUso}
               onChange={(e) => setGiroUso(e.target.value)}
               placeholder="Bodega, Taller, etc."
@@ -275,11 +277,11 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
           </div>
         </div>
 
-        <div className="form-group" style={{ marginBottom: 0 }}>
-          <label className="form-label">N° Licencia de funcionamiento (opcional)</label>
+        <div className={cn(formGroup, 'mb-0!')}>
+          <label className={formLabel}>N° Licencia de funcionamiento (opcional)</label>
           <input
             type="text"
-            className="form-input"
+            className={formInput}
             value={numeroLicenciaFuncionamiento}
             onChange={(e) => setNumeroLicenciaFuncionamiento(e.target.value)}
             placeholder="N° de licencia municipal si la exhibe"
@@ -287,8 +289,8 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
         </div>
 
         {error && (
-          <div className="alert alert-error" role="alert" style={{ marginTop: '1rem', marginBottom: 0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+          <div className={cn(alerta('error'), 'mt-[1rem]! mb-0!')} role="alert">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -298,10 +300,10 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
         )}
       </div>
 
-      <div className="actions-footer">
+      <div className={actionsFooter}>
         <button
           type="button"
-          className="btn btn-primary btn-block btn-lg"
+          className={btn('primary', { tamano: 'lg', block: true })}
           onClick={handleGuardar}
           disabled={guardando}
         >
@@ -319,7 +321,7 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
 
         <button
           type="button"
-          className="btn btn-secondary btn-block"
+          className={btn('secondary', { block: true })}
           onClick={() => setMostrandoNoIdentificado(true)}
           disabled={guardando}
         >

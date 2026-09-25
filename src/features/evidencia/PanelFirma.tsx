@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import SignaturePad from 'signature_pad';
+import { actionsRow, btn, signatureBox, signatureCanvas } from '../../lib/ui';
 
 /**
  * HU-18: panel de firma táctil para el propio dispositivo del
@@ -48,34 +49,23 @@ export default function PanelFirma({ onFirmar }: Props) {
   }
 
   return (
-    <div className="signature-box">
-      <div style={{ position: 'relative', marginBottom: '0.75rem' }}>
+    <div className={signatureBox}>
+      <div className="relative mb-[0.75rem]">
         <canvas
           ref={canvasRef}
-          className="signature-canvas"
+          className={signatureCanvas}
         />
         {vacio && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              pointerEvents: 'none',
-              color: 'var(--color-text-light)',
-              fontSize: '0.875rem',
-            }}
-          >
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-text-light text-[0.875rem]">
             Firme aquí con el dedo o lápiz óptico
           </div>
         )}
       </div>
 
-      <div className="actions-row">
+      <div className={actionsRow}>
         <button
           type="button"
-          className="btn btn-secondary"
+          className={btn('secondary')}
           onClick={limpiar}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -86,7 +76,7 @@ export default function PanelFirma({ onFirmar }: Props) {
 
         <button
           type="button"
-          className="btn btn-primary"
+          className={btn('primary')}
           onClick={confirmar}
           disabled={vacio}
         >

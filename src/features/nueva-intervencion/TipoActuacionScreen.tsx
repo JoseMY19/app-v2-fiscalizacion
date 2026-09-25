@@ -11,27 +11,29 @@ import { seleccionarCaminoIntervencion } from './intervenciones.repository';
  */
 
 import WizardHeader from '../../components/WizardHeader';
+import { cn } from '../../lib/cn';
+import { actionsFooter, badge, appContainer, btn, card, formLabel, formLabelRequired, optionCard, optionCardContent, optionCardDesc, optionCardTitle, optionRadio, optionRadioDot, optionsGrid } from '../../lib/ui';
 
-const OPCIONES: { valor: TipoActuacion; titulo: string; tipo: string; badgeClase: string; descripcion: string }[] = [
+const OPCIONES: { valor: TipoActuacion; titulo: string; tipo: string; badgeClase: 'primary' | 'success' | 'warning'; descripcion: string }[] = [
   {
     valor: TipoActuacion.EXHORTACION,
     titulo: 'Solo Exhortación',
     tipo: 'Preventivo',
-    badgeClase: 'badge-primary',
+    badgeClase: 'primary',
     descripcion: 'Levanta Acta de Exhortación con plazo de subsanación voluntaria, sin notificación de cargo.',
   },
   {
     valor: TipoActuacion.CONSTATACION,
     titulo: 'Solo Constatación',
     tipo: 'Informativo',
-    badgeClase: 'badge-success',
+    badgeClase: 'success',
     descripcion: 'Levanta Acta de Fiscalización dejando constancia de hechos sin infracción sancionable.',
   },
   {
     valor: TipoActuacion.INICIA_PAS,
     titulo: 'Inicia PAS',
     tipo: 'Sancionador',
-    badgeClase: 'badge-warning',
+    badgeClase: 'warning',
     descripcion: 'Levanta Acta de Fiscalización Municipal y Notificación de Cargo para inicio de PAS formal.',
   },
 ];
@@ -64,7 +66,7 @@ export default function TipoActuacionScreen({ localId, onElegido, onVolver }: Pr
   }
 
   return (
-    <div className="app-container">
+    <div className={appContainer}>
       <WizardHeader
         pasoActual={5}
         totalPasos={8}
@@ -74,32 +76,31 @@ export default function TipoActuacionScreen({ localId, onElegido, onVolver }: Pr
         deshabilitarVolver={guardando}
       />
 
-      <div className="card">
-        <label className="form-label form-label-required" style={{ marginBottom: '0.875rem' }}>
+      <div className={card()}>
+        <label className={cn(formLabel, formLabelRequired, 'mb-[0.875rem]!')}>
           Selecciona cómo se cierra esta intervención:
         </label>
 
-        <div className="options-grid">
+        <div className={optionsGrid}>
           {OPCIONES.map((opcion) => {
             const isSelected = camino === opcion.valor;
             return (
               <div
                 key={opcion.valor}
-                className={`option-card ${isSelected ? 'option-card--selected' : ''}`}
+                className={cn(optionCard(isSelected), 'p-[1rem]!')}
                 onClick={() => setCamino(opcion.valor)}
                 role="button"
                 tabIndex={0}
-                style={{ padding: '1rem' }}
               >
-                <div className="option-radio">
-                  <div className="option-radio-dot" />
+                <div className={optionRadio(isSelected)}>
+                  <div className={optionRadioDot(isSelected)} />
                 </div>
-                <div className="option-card-content">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                    <span className="option-card-title">{opcion.titulo}</span>
-                    <span className={`badge ${opcion.badgeClase}`}>{opcion.tipo}</span>
+                <div className={optionCardContent}>
+                  <div className="flex items-center justify-between gap-[0.5rem]">
+                    <span className={optionCardTitle}>{opcion.titulo}</span>
+                    <span className={badge(opcion.badgeClase)}>{opcion.tipo}</span>
                   </div>
-                  <div className="option-card-desc" style={{ marginTop: '0.25rem' }}>
+                  <div className={cn(optionCardDesc, 'mt-[0.25rem]!')}>
                     {opcion.descripcion}
                   </div>
                 </div>
@@ -109,10 +110,10 @@ export default function TipoActuacionScreen({ localId, onElegido, onVolver }: Pr
         </div>
       </div>
 
-      <div className="actions-footer">
+      <div className={actionsFooter}>
         <button
           type="button"
-          className="btn btn-primary btn-block btn-lg"
+          className={btn('primary', { tamano: 'lg', block: true })}
           onClick={handleContinuar}
           disabled={!camino || guardando}
         >

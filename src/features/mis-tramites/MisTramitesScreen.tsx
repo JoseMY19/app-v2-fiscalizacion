@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { TipoActuacion } from '@pas-sjl/shared-types';
 import { listarMisTramites, type MiTramiteItem } from './mis-tramites.repository';
+import { cn } from '../../lib/cn';
+import { alerta, appContainer, badge, btnIconBack, card, screenHeaderCard, screenHeaderInfo, screenHeaderSubtitle, screenHeaderTitle } from '../../lib/ui';
 
 /**
  * Pantalla nueva (pedido explícito, 2026-09-14): el fiscalizador pierde de
@@ -30,11 +32,11 @@ export default function MisTramitesScreen({ onVolver }: Props) {
   }, []);
 
   return (
-    <div className="app-container">
-      <div className="screen-header-card">
+    <div className={appContainer}>
+      <div className={screenHeaderCard}>
         <button
           type="button"
-          className="btn-icon-back"
+          className={btnIconBack}
           onClick={onVolver}
           aria-label="Volver al inicio"
           title="Volver"
@@ -43,42 +45,42 @@ export default function MisTramitesScreen({ onVolver }: Props) {
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
         </button>
-        <div className="screen-header-info">
-          <h1 className="screen-header-title">Mis trámites</h1>
-          <p className="screen-header-subtitle">Historial de actuaciones sincronizadas</p>
+        <div className={screenHeaderInfo}>
+          <h1 className={screenHeaderTitle}>Mis trámites</h1>
+          <p className={screenHeaderSubtitle}>Historial de actuaciones sincronizadas</p>
         </div>
         {items && items.length > 0 && (
-          <span className="badge badge-neutral" style={{ fontSize: '0.75rem' }}>
+          <span className={badge('neutral')}>
             {items.length}
           </span>
         )}
       </div>
 
       {error && (
-        <div className="alert alert-error" role="alert" style={{ marginBottom: '1rem' }}>
+        <div className={alerta('error')} role="alert">
           <span>{error}</span>
         </div>
       )}
 
-      {items === null && !error && <p style={{ color: 'var(--color-text-muted)' }}>Cargando…</p>}
+      {items === null && !error && <p className="text-text-muted">Cargando…</p>}
 
       {items && items.length === 0 && (
-        <p style={{ color: 'var(--color-text-muted)' }}>Todavía no tienes intervenciones sincronizadas.</p>
+        <p className="text-text-muted">Todavía no tienes intervenciones sincronizadas.</p>
       )}
 
       {items?.map((item) => (
-        <div key={item.id} className="card" style={{ marginBottom: '0.75rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
+        <div key={item.id} className={cn(card(), 'mb-3!')}>
+          <div className="flex justify-between items-start gap-3">
             <div>
               <strong>{item.numeroExpediente?.trim() || TITULO_CAMINO[item.tipoActuacion] || item.tipoActuacion}</strong>
-              <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+              <p className="mt-1 mb-0 text-[0.8125rem] text-text-muted">
                 {new Date(item.fechaHoraInicio).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
                 {' · '}
                 {TITULO_CAMINO[item.tipoActuacion] ?? item.tipoActuacion}
               </p>
-              <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.875rem', color: 'var(--color-text-body)' }}>{item.estadoGeneral}</p>
+              <p className="mt-2 mb-0 text-sm text-text-body">{item.estadoGeneral}</p>
             </div>
-            {item.requiereAccionTuya && <span className="badge badge-warning">Acción requerida</span>}
+            {item.requiereAccionTuya && <span className={badge('warning')}>Acción requerida</span>}
           </div>
         </div>
       ))}

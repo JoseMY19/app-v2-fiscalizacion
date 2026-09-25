@@ -13,6 +13,8 @@ import { crearIntervencionConUbicacion } from './intervenciones.repository';
  */
 
 import WizardHeader from '../../components/WizardHeader';
+import { cn } from '../../lib/cn';
+import { actionsFooter, alerta, appContainer, btn, card, cardIconPin, formGroup, formHint, formInput, formLabel, formLabelRequired, gpsPrecisionPill, gpsPulseContainer, gpsStatusChip, gpsStatusChipDot, pulseDot } from '../../lib/ui';
 
 interface Props {
   onGuardado: (localId: string) => void;
@@ -56,7 +58,7 @@ export default function NuevaIntervencionScreen({ onGuardado, onCancelar }: Prop
   }
 
   return (
-    <div className="app-container">
+    <div className={appContainer}>
       <WizardHeader
         pasoActual={1}
         totalPasos={8}
@@ -67,14 +69,14 @@ export default function NuevaIntervencionScreen({ onGuardado, onCancelar }: Prop
 
       {/* Estado: Buscando señal GPS */}
       {(captura.estado === 'inactivo' || captura.estado === 'solicitando') && (
-        <div className="card">
-          <div className="gps-pulse-container">
-            <div className="pulse-dot" />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 600, color: 'var(--color-primary-900)', fontSize: '0.9375rem' }}>
+        <div className={card()}>
+          <div className={gpsPulseContainer}>
+            <div className={pulseDot} />
+            <div className="flex-1">
+              <div className="font-semibold text-primary-900 text-[0.9375rem]">
                 Obteniendo ubicación GPS…
               </div>
-              <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+              <div className="text-[0.8125rem] text-text-muted">
                 Fijando satélites. Puede tardar hasta 15 segundos.
               </div>
             </div>
@@ -84,57 +86,57 @@ export default function NuevaIntervencionScreen({ onGuardado, onCancelar }: Prop
 
       {/* Estado: GPS fijado con éxito */}
       {captura.estado === 'capturado' && (
-        <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.125rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-              <div className="card-icon-pin">
+        <div className={card()}>
+          <div className="flex items-center justify-between mb-[1.125rem]">
+            <div className="flex items-center gap-[0.625rem]">
+              <div className={cardIconPin}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                   <circle cx="12" cy="10" r="3" />
                 </svg>
               </div>
-              <span style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--color-text-title)' }}>
+              <span className="font-bold text-[0.9375rem] text-text-title">
                 Coordenadas de Campo
               </span>
             </div>
-            <span className="gps-status-chip">
-              <span className="gps-status-chip-dot" />
+            <span className={gpsStatusChip}>
+              <span className={gpsStatusChipDot} />
               <span>GPS Activo</span>
             </span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.875rem' }}>
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Latitud</label>
+          <div className="grid grid-cols-[1fr_1fr] gap-[0.75rem] mb-[0.875rem]">
+            <div className={cn(formGroup, 'mb-0!')}>
+              <label className={formLabel}>Latitud</label>
               <input
                 type="text"
-                className="form-input"
+                className={formInput}
                 value={captura.latitud.toFixed(7)}
                 readOnly
               />
             </div>
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Longitud</label>
+            <div className={cn(formGroup, 'mb-0!')}>
+              <label className={formLabel}>Longitud</label>
               <input
                 type="text"
-                className="form-input"
+                className={formInput}
                 value={captura.longitud.toFixed(7)}
                 readOnly
               />
             </div>
           </div>
 
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">Precisión satelital</label>
-            <div className="gps-precision-pill">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ color: 'var(--color-primary-600)', flexShrink: 0 }}>
+          <div className={cn(formGroup, 'mb-0!')}>
+            <label className={formLabel}>Precisión satelital</label>
+            <div className={gpsPrecisionPill}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="text-primary-600 shrink-0">
                 <circle cx="12" cy="12" r="10" />
                 <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
                 <path d="M2 12h20" />
               </svg>
               <span>± {captura.precisionM.toFixed(1)} metros</span>
             </div>
-            <span className="form-hint" style={{ marginTop: '0.35rem', display: 'block' }}>
+            <span className={cn(formHint, 'mt-[0.35rem]! block!')}>
               Capturado automáticamente por el sensor del dispositivo móvil.
             </span>
           </div>
@@ -143,20 +145,20 @@ export default function NuevaIntervencionScreen({ onGuardado, onCancelar }: Prop
 
       {/* Estado: Sin señal o permiso denegado */}
       {(captura.estado === 'sin_senal' || captura.estado === 'permiso_denegado') && (
-        <div className="card card--warning">
-          <div className="alert alert-warning" style={{ marginBottom: '1rem' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+        <div className={card('warning')}>
+          <div className={cn(alerta('warning'), 'mb-[1rem]!')}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
             <div>
-              <div style={{ fontWeight: 600, marginBottom: '0.2rem' }}>
+              <div className="font-semibold mb-[0.2rem]">
                 {captura.estado === 'permiso_denegado'
                   ? 'Permiso de ubicación no otorgado'
                   : 'Sin señal GPS fija en 15 segundos'}
               </div>
-              <div style={{ fontSize: '0.8125rem' }}>
+              <div className="text-[0.8125rem]">
                 Puedes reintentar fijar señal o ingresar la dirección física aproximada como respaldo.
               </div>
             </div>
@@ -164,9 +166,8 @@ export default function NuevaIntervencionScreen({ onGuardado, onCancelar }: Prop
 
           <button
             type="button"
-            className="btn btn-outline btn-block"
+            className={cn(btn('outline', { block: true }), 'mb-[1.25rem]!')}
             onClick={solicitar}
-            style={{ marginBottom: '1.25rem' }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
@@ -174,27 +175,27 @@ export default function NuevaIntervencionScreen({ onGuardado, onCancelar }: Prop
             <span>Reintentar fijación GPS</span>
           </button>
 
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label form-label-required">
+          <div className={cn(formGroup, 'mb-0!')}>
+            <label className={cn(formLabel, formLabelRequired)}>
               Dirección aproximada (respaldo)
             </label>
             <input
               type="text"
-              className="form-input"
+              className={formInput}
               value={direccionAproximada}
               onChange={(e) => setDireccionAproximada(e.target.value)}
               placeholder="Ej. Av. Próceres de la Independencia 1500, SJL"
             />
-            <span className="form-hint">Obligatoria si no hay coordenadas satelitales.</span>
+            <span className={formHint}>Obligatoria si no hay coordenadas satelitales.</span>
           </div>
         </div>
       )}
 
       {/* Botones de acción */}
-      <div className="actions-footer">
+      <div className={actionsFooter}>
         <button
           type="button"
-          className="btn btn-primary btn-block btn-lg"
+          className={btn('primary', { tamano: 'lg', block: true })}
           onClick={handleGuardar}
           disabled={!puedeGuardar || guardando}
         >
@@ -212,7 +213,7 @@ export default function NuevaIntervencionScreen({ onGuardado, onCancelar }: Prop
 
         <button
           type="button"
-          className="btn btn-secondary btn-block"
+          className={btn('secondary', { block: true })}
           onClick={onCancelar}
           disabled={guardando}
         >
