@@ -191,7 +191,7 @@ export interface NotificacionCargoLocal {
   creadoEn: string;
 }
 
-/** HU-20: testigos cuando hay negativa. orden 1 y 2, siempre exactamente 2. */
+/** Testigos presenciales, orden 1 y 2 — ambos opcionales (C1, 2026-09-30): pueden ser 0, 1 o 2. */
 export interface TestigoLocal {
   id?: number;
   intervencionLocalId: string;
@@ -212,18 +212,33 @@ export interface ParametroUitCache {
 /**
  * HU-14: acta de medida provisional. NO es 1:1 — Prisma no le pone
  * @@unique([intervencionId]), una intervención puede tener más de una
- * (ej. clausura de un local y paralización de otra área). tipoMedida se
- * restringe a CLAUSURA/PARALIZACION: Retención y Decomiso van por
- * ActaAdicional (ver erd-sp1-decisiones.md §2.5 y la sesión de HU-14).
+ * (ej. clausura de un local y paralización de otra área). C2 (2026-09-30):
+ * catálogo ampliado (retención, decomiso, cancelación de evento, retiro de
+ * animal) — el acta de Retención de Vehículos / Decomiso como formato
+ * aparte sigue yendo por ActaAdicional (erd-sp1-decisiones.md §2.5).
+ * OTROS exige descripción.
  */
+export type TipoMedidaProvisional =
+  | 'CLAUSURA'
+  | 'PARALIZACION'
+  | 'RETENCION'
+  | 'DECOMISO'
+  | 'CANCELACION_EVENTO'
+  | 'RETIRO_ANIMAL'
+  | 'OTROS';
+
 export interface ActaMedidaProvisionalLocal {
   id?: number;
   intervencionLocalId: string;
   numeroCorrelativo: string;
-  tipoMedida: 'CLAUSURA' | 'PARALIZACION' | 'OTROS';
+  tipoMedida: TipoMedidaProvisional;
   descripcion?: string;
   lugarEjecucion?: string;
   observacionesAdministrado?: string;
+  // C3: ¿se ejecutó la medida en el acto? Ausente = no registrado (actas
+  // guardadas antes de este campo) — nunca se asume un valor. Campo no
+  // indexado, por eso no requiere subir la versión de Dexie.
+  seEjecutoEnActo?: boolean;
   creadoEn: string;
 }
 

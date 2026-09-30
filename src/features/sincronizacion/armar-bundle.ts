@@ -74,6 +74,7 @@ export interface BundleIntervencion {
     descripcion?: string;
     lugarEjecucion?: string;
     observacionesAdministrado?: string;
+    seEjecutoEnActo?: boolean;
   }[];
   actasValorizacionObra: { numeroCorrelativo: string; estadoObra?: string }[];
   actasAdicionales: { tipo: string; numeroCorrelativo: string; detalle?: string }[];
@@ -179,6 +180,7 @@ export async function armarBundle(intervencionLocalId: string): Promise<BundleIn
       descripcion: m.descripcion,
       lugarEjecucion: m.lugarEjecucion,
       observacionesAdministrado: m.observacionesAdministrado,
+      seEjecutoEnActo: m.seEjecutoEnActo,
     })),
     actasValorizacionObra: valorizaciones.map((v) => ({ numeroCorrelativo: v.numeroCorrelativo, estadoObra: v.estadoObra })),
     actasAdicionales: adicionales.map((a) => ({ tipo: a.tipo, numeroCorrelativo: a.numeroCorrelativo, detalle: a.detalle })),
