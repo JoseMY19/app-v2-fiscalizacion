@@ -206,7 +206,7 @@ export default function NotificacionEntregaScreen({ localId, onContinuar, onVolv
         </div>
 
         {entregadaEnElActo === true && (
-          <div className="mt-[1rem] pt-[1rem] border-t border-solid border-t-border">
+          <div className="mt-[1rem] pt-[1rem] border-0 border-t border-solid border-t-border">
             <h3 className="text-[0.9375rem] mb-[0.75rem] text-primary-900">
               Datos del Receptor (si fue persona distinta o adicional)
             </h3>

@@ -184,7 +184,7 @@ export const signatureCanvas = 'w-full max-w-[440px] h-[180px] bg-white rounded-
 // ---------- Acciones ----------
 /** Pie de acciones; en >=640px los botones pasan a fila y ancho automático. */
 export const actionsFooter =
-  'flex flex-col gap-2.5 mt-6 pt-4 border-t border-solid border-border sm:flex-row sm:justify-end sm:[&>button]:w-auto';
+  'flex flex-col gap-2.5 mt-6 pt-4 border-0 border-t border-solid border-border sm:flex-row sm:justify-end sm:[&>button]:w-auto';
 export const actionsRow = 'flex gap-3 [&>*]:flex-1';
 
 // ---------- Listas ----------
