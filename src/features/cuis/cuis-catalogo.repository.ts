@@ -59,19 +59,63 @@ function aCodigoLocal(fila: CuisCodigoCache): CuisCodigoLocal {
  * conexión, nunca debe dejar el catálogo local incompleto ni borrarlo.
  */
 export async function sincronizarCatalogoCuis(): Promise<number> {
+  const catalogo = await descargarCatalogo();
+  await guardarCatalogo(catalogo);
+  return catalogo.length;
+}
+
+async function descargarCatalogo(): Promise<CuisCodigoApiResponse[]> {
   const respuesta = await fetchAutenticado(`${API_BASE_URL}/cuis/codigos/catalogo`);
   if (!respuesta.ok) {
     throw new Error(`No se pudo sincronizar el catálogo CUIS (HTTP ${respuesta.status})`);
   }
-  const catalogo: CuisCodigoApiResponse[] = await respuesta.json();
-  const filas = catalogo.map(aFilaCache);
+  return respuesta.json();
+}
 
+async function guardarCatalogo(catalogo: CuisCodigoApiResponse[]): Promise<void> {
+  const filas = catalogo.map(aFilaCache);
   await db.transaction('rw', db.cuisCache, async () => {
     await db.cuisCache.clear();
     await db.cuisCache.bulkAdd(filas);
   });
+}
 
-  return filas.length;
+/** Una vez por sesión: el catálogo del servidor ya se verificó contra lo local. */
+let catalogoVerificado = false;
+
+/**
+ * Antes de enviar una intervención: si el catálogo del servidor cambió (p.
+ * ej. se recargaron las escalas de multa con IDs nuevos), la escala elegida
+ * en campo puede apuntar a un ID que ya no existe. Se reasocia SOLO cuando
+ * hay una equivalencia exacta — mismo código, misma escala (L/G/MG) y misma
+ * condición — usando el catálogo local viejo como referencia. Si no hay
+ * equivalencia exacta no se toca nada (el servidor lo rechazará y el
+ * fiscalizador volverá a elegir). Sin conexión: no hace nada.
+ */
+export async function reconciliarEscalasConServidor(): Promise<void> {
+  if (catalogoVerificado) return;
+  let nuevo: CuisCodigoApiResponse[];
+  try {
+    nuevo = await descargarCatalogo();
+  } catch {
+    return;
+  }
+  const nuevoPorId = new Map(nuevo.map((c) => [c.id, c]));
+  // Todas las selecciones locales a la vez: después se reemplaza el catálogo viejo (la referencia).
+  const registros = await db.intervencionCuis.toArray();
+  for (const reg of registros) {
+    const codigo = nuevoPorId.get(reg.cuisCodigoId);
+    if (!codigo || !reg.cuisEscalaMontoId || codigo.escalas.some((e) => e.id === reg.cuisEscalaMontoId)) continue;
+    const viejo = await obtenerCodigoLocalPorId(reg.cuisCodigoId);
+    const escalaVieja = viejo?.escalas.find((e) => e.id === reg.cuisEscalaMontoId);
+    if (!escalaVieja) continue;
+    const equivalentes = codigo.escalas.filter((e) => e.escala === escalaVieja.escala && (e.condicion ?? null) === (escalaVieja.condicion ?? null));
+    if (equivalentes.length === 1 && reg.id != null) {
+      await db.intervencionCuis.update(reg.id, { cuisEscalaMontoId: equivalentes[0].id });
+    }
+  }
+  await guardarCatalogo(nuevo);
+  catalogoVerificado = true;
 }
 
 /** HU-07: si nunca sincronizó, la búsqueda local no tiene nada que ofrecer. */
