@@ -186,7 +186,7 @@ export default function LoginScreen({ onListo }: Props) {
             </button>
           </form>
 
-          <div className="flex items-center justify-center gap-[0.35rem] text-[0.7rem] text-text-muted mt-5 pt-4 border-t border-solid border-border">
+          <div className="flex items-center justify-center gap-[0.35rem] text-[0.7rem] text-text-muted mt-5 pt-4 border-0 border-t border-solid border-border">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />

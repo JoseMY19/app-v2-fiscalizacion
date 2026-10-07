@@ -81,7 +81,9 @@ export default function ResumenScreen({
         if (notificacionCargo.modoNotificacion === 'DOMICILIARIA_PENDIENTE') {
           entregaNcTexto = 'No entregada en el acto — pendiente de notificación domiciliaria.';
         } else if (notificacionCargo.modoNotificacion === 'PERSONAL_NEGATIVA') {
-          entregaNcTexto = `Entregada en el acto (${fecha}) con negativa a firmar, con testigos.`;
+          // Testigos opcionales (C1): solo se menciona si realmente se registraron.
+          const totalTestigos = await db.testigos.where('intervencionLocalId').equals(localId).count();
+          entregaNcTexto = `Entregada en el acto (${fecha}) con negativa a firmar, ${totalTestigos > 0 ? 'con testigos' : 'sin testigos'}.`;
         } else {
           entregaNcTexto = `Entregada y firmada en el acto (${fecha}).`;
         }

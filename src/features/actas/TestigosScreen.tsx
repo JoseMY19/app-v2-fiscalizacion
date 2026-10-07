@@ -10,13 +10,16 @@ import { guardarTestigos, listarTestigos } from './testigos.repository';
  * que antes vivía dentro de NotificacionEntregaScreen (esa pantalla sigue
  * existiendo solo para EXHORTACION/CONSTATACION, que nunca tuvieron acceso
  * a ese bloque).
- * Cambio de regla (2026-09-18): solo el testigo 1 es obligatorio, el
- * testigo 2 pasa a ser opcional — pero si se empieza a llenar, debe
- * completarse entero (no se guarda un testigo a medias).
+ * Cambio de regla (2026-09-18): solo el testigo 1 es obligatorio.
+ * Cambio de regla (2026-09-30, C1, reemplaza los anteriores): AMBOS
+ * testigos son opcionales — si el administrado firma no hace falta, y el
+ * testigo debería ser un tercero ajeno a la entidad. Se mantiene la pantalla
+ * en los 3 caminos. Cualquier testigo que se empiece a llenar debe
+ * completarse entero (nombre + DNI) — nunca se guarda uno a medias.
  */
 import WizardHeader from '../../components/WizardHeader';
 import { cn } from '../../lib/cn';
-import { actionsFooter, alerta, appContainer, btn, card, formGroup, formInput, formLabel, formLabelRequired } from '../../lib/ui';
+import { actionsFooter, alerta, appContainer, btn, card, formGroup, formInput, formLabel } from '../../lib/ui';
 
 interface Props {
   localId: string;
@@ -47,19 +50,24 @@ export default function TestigosScreen({ localId, onContinuar, onVolver }: Props
     });
   }, [localId]);
 
+  const testigo1Vacio = testigo1Nombre.trim().length === 0 && testigo1Documento.trim().length === 0;
   const testigo1Completo = testigo1Nombre.trim().length > 0 && testigo1Documento.trim().length > 0;
   const testigo2Vacio = testigo2Nombre.trim().length === 0 && testigo2Documento.trim().length === 0;
   const testigo2Completo = testigo2Nombre.trim().length > 0 && testigo2Documento.trim().length > 0;
-  // Testigo 2 opcional: o se deja completamente vacío, o se llena entero —
-  // nunca se guarda a medias.
-  const completo = testigo1Completo && (testigo2Vacio || testigo2Completo);
+  // Ambos opcionales: cada testigo o se deja completamente vacío, o se
+  // llena entero — nunca se guarda a medias.
+  const completo = (testigo1Vacio || testigo1Completo) && (testigo2Vacio || testigo2Completo);
 
   async function handleGuardar() {
     if (!completo || guardando) return;
     setGuardando(true);
     setError(null);
     try {
-      const testigos = [{ nombre: testigo1Nombre, documento: testigo1Documento }];
+      // Se reenumeran en orden 1..n: si solo se llenó el testigo 2, se guarda como testigo 1.
+      const testigos: { nombre: string; documento: string }[] = [];
+      if (testigo1Completo) {
+        testigos.push({ nombre: testigo1Nombre, documento: testigo1Documento });
+      }
       if (testigo2Completo) {
         testigos.push({ nombre: testigo2Nombre, documento: testigo2Documento });
       }
@@ -77,19 +85,22 @@ export default function TestigosScreen({ localId, onContinuar, onVolver }: Props
       <WizardHeader
         pasoActual={6}
         totalPasos={8}
-        titulo="Testigos de la Intervención"
-        subtitulo="Toda intervención requiere al menos 1 testigo presencial"
+        titulo="Testigos (opcional)"
+        subtitulo="Registra testigos solo si corresponde — un testigo debería ser un tercero ajeno a la entidad"
         onVolver={onVolver}
         deshabilitarVolver={guardando}
       />
 
       <div className={card()}>
+        <p className="text-[0.8125rem] text-text-muted mt-0 mb-[1rem]">
+          Si el administrado firma, no hace falta testigo. Puedes continuar sin registrar ninguno.
+        </p>
         <h3 className="text-[0.9375rem] mb-[0.5rem] text-primary-900">
-          Testigo 1 (Obligatorio)
+          Testigo 1 (Opcional)
         </h3>
-        <div className="grid grid-cols-[1fr_140px] gap-[0.625rem] mb-[1rem]">
+        <div className="grid grid-cols-[1fr_140px] gap-[0.625rem]">
           <div className={cn(formGroup, 'mb-0!')}>
-            <label className={cn(formLabel, formLabelRequired)}>Nombre completo</label>
+            <label className={formLabel}>Nombre completo</label>
             <input
               type="text"
               className={formInput}
@@ -99,7 +110,7 @@ export default function TestigosScreen({ localId, onContinuar, onVolver }: Props
             />
           </div>
           <div className={cn(formGroup, 'mb-0!')}>
-            <label className={cn(formLabel, formLabelRequired)}>DNI</label>
+            <label className={formLabel}>DNI</label>
             <input
               type="text"
               className={formInput}
@@ -110,7 +121,13 @@ export default function TestigosScreen({ localId, onContinuar, onVolver }: Props
           </div>
         </div>
 
-        <h3 className="text-[0.9375rem] mb-[0.5rem] text-primary-900">
+        {!testigo1Vacio && !testigo1Completo && (
+          <p className="text-[0.75rem] mt-[0.375rem] mb-0">
+            Complete nombre y DNI del testigo 1, o borre ambos campos para dejarlo sin registrar.
+          </p>
+        )}
+
+        <h3 className="text-[0.9375rem] mt-[1rem] mb-[0.5rem] text-primary-900">
           Testigo 2 (Opcional)
         </h3>
         <div className="grid grid-cols-[1fr_140px] gap-[0.625rem]">

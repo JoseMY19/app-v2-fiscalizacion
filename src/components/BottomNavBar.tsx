@@ -31,7 +31,7 @@ export default function BottomNavBar({
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 h-[62px] bg-white border-t border-solid border-border shadow-[0_-2px_10px_rgba(14,26,59,0.08)] flex items-center justify-around px-2 z-50 max-w-[480px] mx-auto translate-z-0"
+      className="fixed bottom-0 left-0 right-0 h-[62px] bg-white border-0 border-t border-solid border-border shadow-[0_-2px_10px_rgba(14,26,59,0.08)] flex items-center justify-around px-2 z-50 max-w-[480px] mx-auto translate-z-0"
       aria-label="Navegación principal"
     >
       {/* 1. Inicio */}

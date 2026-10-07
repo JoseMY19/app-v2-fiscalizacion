@@ -8,6 +8,7 @@ import { listarFirmasPendientes, marcarFirmaSincronizada } from '../evidencia/fi
 import { asegurarEnCola, limpiarCola, registrarIntento } from './sync-cola.repository';
 import { emitirCambioSync } from './sync-eventos';
 import { purgarEvidenciaLocal } from './purgar-evidencia-local';
+import { reconciliarEscalasConServidor } from '../cuis/cuis-catalogo.repository';
 
 export type ResultadoSincronizacion = 'SINCRONIZADA' | 'CONFLICTO' | 'ERROR_TRANSITORIO';
 
@@ -83,6 +84,8 @@ async function subirEvidenciaPendiente(intervencionLocalId: string): Promise<boo
  */
 export async function sincronizarIntervencion(intervencionLocalId: string): Promise<ResultadoSincronizacion> {
   await asegurarEnCola(intervencionLocalId);
+  // Escalas elegidas con un catálogo viejo → su equivalente exacto en el catálogo actual.
+  await reconciliarEscalasConServidor();
 
   let bundle;
   try {

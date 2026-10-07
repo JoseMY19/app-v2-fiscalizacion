@@ -88,8 +88,20 @@ export default function EscanearActaOcr({ tipoActa, onSugerencias }: Props) {
           {!leyendo && 'Escanear acta física y sugerir campos'}
         </span>
       </label>
+      {/* C5: misma lectura OCR desde una foto ya tomada (galería). */}
+      <label
+        className={cn(btn('outline'), 'flex! items-center! justify-center! gap-2! mt-[0.5rem]!', leyendo ? 'cursor-not-allowed!' : 'cursor-pointer!')}
+      >
+        <input type="file" accept="image/*" onChange={(e) => handleArchivo(e.target.files)} disabled={leyendo} className="hidden" />
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <path d="M21 15l-5-5L5 21" />
+        </svg>
+        <span>Elegir de la galería</span>
+      </label>
       <p className={cn(formHint, 'mt-[0.375rem]!')}>
-        Opcional: toma foto del acta ya llena a mano. Los campos se rellenan como sugerencia — siempre revísalos antes de guardar.
+        Opcional: toma o elige una foto del acta ya llena a mano. Los campos se rellenan como sugerencia — siempre revísalos antes de guardar.
       </p>
 
       {modoUsado && (
