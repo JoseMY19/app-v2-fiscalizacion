@@ -6,8 +6,6 @@ import { obtenerFiscalizadorActivo } from './features/auth/auth.repository';
 import { contarPendientes } from './features/sincronizacion/sync-cola.repository';
 import { escanearYSincronizar, iniciarMotorSincronizacion } from './features/sincronizacion/motor-sincronizacion';
 import { suscribirseACambiosSync, suscribirseASesionExpirada } from './features/sincronizacion/sync-eventos';
-import ObservadasScreen from './features/correccion/ObservadasScreen';
-import { listarObservadas } from './features/correccion/intervenciones-observadas.repository';
 import MisTramitesScreen from './features/mis-tramites/MisTramitesScreen';
 import { socket } from './lib/socket';
 
@@ -41,7 +39,6 @@ const menuItemDesc = 'text-xs text-text-muted whitespace-nowrap overflow-hidden 
 type Vista =
   | { nombre: 'inicio' }
   | { nombre: 'nueva-intervencion' }
-  | { nombre: 'observadas' }
   | { nombre: 'mis-tramites' }
   | { nombre: 'perfil' };
 
@@ -85,7 +82,6 @@ export default function App() {
   // V-01: contador informativo, no crítico — a diferencia de `pendientes`
   // (offline-safe, cuenta local), este requiere red. Si falla (sin señal),
   // simplemente no se muestra badge; nunca bloquea ni alerta.
-  const [observadasCount, setObservadasCount] = useState<number | null>(null);
 
   useEffect(() => {
     const fiscalizador = obtenerFiscalizadorActivo();
@@ -110,16 +106,6 @@ export default function App() {
     return suscribirseACambiosSync(() => {
       contarPendientes().then(setPendientes);
     });
-  }, [tieneFiscalizador]);
-
-  // V-01: una sola consulta al cargar — no hay evento local que avise de
-  // observaciones nuevas (pasan del lado del validador, no de este
-  // dispositivo), así que no tiene sentido resuscribirse a nada acá.
-  useEffect(() => {
-    if (!tieneFiscalizador) return;
-    listarObservadas()
-      .then((lista) => setObservadasCount(lista.length))
-      .catch(() => setObservadasCount(null));
   }, [tieneFiscalizador]);
 
   // HU-27: avisa (no bloquea) si intenta cerrar/salir con pendientes > 0.
@@ -172,23 +158,11 @@ export default function App() {
           setUltimaIntervencion({ localId, identificado, cerrada, camino });
           setCorrigiendoLocalId(null);
           setVista({ nombre: 'inicio' });
-          // Se acaba de resolver una observación — refresca el contador.
-          listarObservadas()
-            .then((lista) => setObservadasCount(lista.length))
-            .catch(() => setObservadasCount(null));
         }}
         onCancelar={() => {
           setCorrigiendoLocalId(null);
           setVista({ nombre: 'inicio' });
         }}
-      />
-    ) : vista.nombre === 'observadas' ? (
-      <ObservadasScreen
-        onCorregir={(localId) => {
-          setCorrigiendoLocalId(localId);
-          setVista({ nombre: 'nueva-intervencion' });
-        }}
-        onVolver={() => setVista({ nombre: 'inicio' })}
       />
     ) : vista.nombre === 'mis-tramites' ? (
       <MisTramitesScreen onVolver={() => setVista({ nombre: 'inicio' })} />
@@ -276,8 +250,8 @@ export default function App() {
           </button>
         </div>
 
-        {/* Grilla 2x2 de Indicadores Rápidos */}
-        <div className="grid grid-cols-2 gap-3 mb-5">
+        {/* Indicador de sincronización */}
+        <div className="grid grid-cols-1 gap-3 mb-5">
           {/* KPI 1: Sincronización */}
           <button
             type="button"
@@ -312,38 +286,6 @@ export default function App() {
             </div>
           </button>
 
-          {/* KPI 2: Intervenciones Observadas */}
-          <button
-            type="button"
-            className={cn(kpiCardBase, observadasCount && observadasCount > 0 ? 'border-warning-border' : 'border-border')}
-            onClick={() => setVista({ nombre: 'observadas' })}
-            title="Ver intervenciones observadas"
-          >
-            <div className={kpiTop}>
-              <div className={cn(kpiIcon, observadasCount && observadasCount > 0 ? 'bg-warning-bg text-warning' : 'bg-bg-subtle text-text-muted')}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                  <line x1="12" y1="9" x2="12" y2="13" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
-              </div>
-              {observadasCount && observadasCount > 0 ? (
-                <span className={kpiChip('warning')}>
-                  {observadasCount} por revisar
-                </span>
-              ) : (
-                <span className={kpiChip('neutral')}>
-                  0 casos
-                </span>
-              )}
-            </div>
-            <div className={kpiBody}>
-              <div className={kpiLabel}>Observadas</div>
-              <div className={kpiDetail}>
-                {observadasCount && observadasCount > 0 ? 'Requiere corrección' : 'Sin observaciones'}
-              </div>
-            </div>
-          </button>
         </div>
 
         {/* Menú de Gestión Móvil */}
@@ -446,7 +388,8 @@ export default function App() {
         vistaActual={vista.nombre}
         onCambiarVista={(v) => setVista({ nombre: v })}
         onNuevaIntervencion={() => setVista({ nombre: 'nueva-intervencion' })}
-        tieneObservadas={Boolean(observadasCount && observadasCount > 0)}
+        onSincronizar={handleSincronizarAhora}
+        sincronizando={sincronizando}
         pendientesSync={pendientes}
       />
 

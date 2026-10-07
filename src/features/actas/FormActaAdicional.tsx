@@ -20,7 +20,9 @@ export default function FormActaAdicional({ localId, tipo, onGuardada }: Props) 
   const [guardando, setGuardando] = useState(false);
 
   const estadoCorrelativo = useVerificacionCorrelativo(TipoActa.ADICIONAL, numeroCorrelativo, localId);
-  const puedeGuardar = numeroCorrelativo.trim().length > 0 && estadoCorrelativo !== 'duplicado';
+  // Foto obligatoria del acta física.
+  const [tieneFotoActa, setTieneFotoActa] = useState(false);
+  const puedeGuardar = numeroCorrelativo.trim().length > 0 && estadoCorrelativo !== 'duplicado' && tieneFotoActa;
 
   async function handleGuardar() {
     if (!puedeGuardar || guardando) return;
@@ -53,8 +55,9 @@ export default function FormActaAdicional({ localId, tipo, onGuardada }: Props) 
       <AdjuntarFotoActa
         intervencionLocalId={localId}
         actaTipo="ACTA_ADICIONAL"
-        obligatoria={false}
-        label="Foto del acta física adicional (opcional)"
+        obligatoria
+        onCambio={setTieneFotoActa}
+        label="Foto del acta física adicional"
       />
 
       <button

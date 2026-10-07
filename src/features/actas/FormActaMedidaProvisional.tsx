@@ -56,6 +56,9 @@ export default function FormActaMedidaProvisional({ localId, onGuardada }: Props
   const [lugarEjecucion, setLugarEjecucion] = useState('');
   const [observacionesAdministrado, setObservacionesAdministrado] = useState('');
   const [guardando, setGuardando] = useState(false);
+  // Foto obligatoria del acta física (y de la medida, si se ejecutó en el acto).
+  const [tieneFotoActa, setTieneFotoActa] = useState(false);
+  const [tieneFotoEjecucion, setTieneFotoEjecucion] = useState(false);
 
   const estadoCorrelativo = useVerificacionCorrelativo(TipoActa.MEDIDA_PROVISIONAL, numeroCorrelativo, localId);
   const requiereDescripcion = tipoMedida === 'OTROS';
@@ -64,7 +67,9 @@ export default function FormActaMedidaProvisional({ localId, onGuardada }: Props
     estadoCorrelativo !== 'duplicado' &&
     tipoMedida !== null &&
     seEjecutoEnActo !== null &&
-    (!requiereDescripcion || descripcion.trim().length > 0);
+    (!requiereDescripcion || descripcion.trim().length > 0) &&
+    tieneFotoActa &&
+    (seEjecutoEnActo !== true || tieneFotoEjecucion);
 
   function handleSugerenciasOcr(datos: DatosOcrActa) {
     if (datos.numeroCorrelativo) setNumeroCorrelativo(datos.numeroCorrelativo);
@@ -195,16 +200,18 @@ export default function FormActaMedidaProvisional({ localId, onGuardada }: Props
       <AdjuntarFotoActa
         intervencionLocalId={localId}
         actaTipo="ACTA_MEDIDA_PROVISIONAL"
-        obligatoria={false}
-        label="Foto del acta física de medida provisional (opcional)"
+        obligatoria
+        label="Foto del acta física de medida provisional"
+        onCambio={setTieneFotoActa}
       />
 
       {seEjecutoEnActo === true && (
         <AdjuntarFotoActa
           intervencionLocalId={localId}
           actaTipo="MEDIDA_PROVISIONAL_EJECUCION"
-          obligatoria={false}
-          label="Foto de la medida ejecutada (opcional)"
+          obligatoria
+          label="Foto de la medida ejecutada"
+          onCambio={setTieneFotoEjecucion}
           textoBotonCamara="Tomar foto de la medida"
           altFoto="Medida provisional ejecutada"
         />

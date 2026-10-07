@@ -18,7 +18,9 @@ export default function FormActaValorizacionObra({ localId, onGuardada }: Props)
   const [guardando, setGuardando] = useState(false);
 
   const estadoCorrelativo = useVerificacionCorrelativo(TipoActa.VALORIZACION_OBRA, numeroCorrelativo, localId);
-  const puedeGuardar = numeroCorrelativo.trim().length > 0 && estadoCorrelativo !== 'duplicado';
+  // Foto obligatoria del acta física.
+  const [tieneFotoActa, setTieneFotoActa] = useState(false);
+  const puedeGuardar = numeroCorrelativo.trim().length > 0 && estadoCorrelativo !== 'duplicado' && tieneFotoActa;
 
   async function handleGuardar() {
     if (!puedeGuardar || guardando) return;
@@ -55,8 +57,9 @@ export default function FormActaValorizacionObra({ localId, onGuardada }: Props)
       <AdjuntarFotoActa
         intervencionLocalId={localId}
         actaTipo="ACTA_VALORIZACION_OBRA"
-        obligatoria={false}
-        label="Foto del acta física de valorización de obra (opcional)"
+        obligatoria
+        onCambio={setTieneFotoActa}
+        label="Foto del acta física de valorización de obra"
       />
 
       <button

@@ -2,9 +2,11 @@ import { cn } from '../lib/cn';
 
 interface Props {
   vistaActual: string;
-  onCambiarVista: (vista: 'inicio' | 'mis-tramites' | 'observadas' | 'perfil') => void;
+  onCambiarVista: (vista: 'inicio' | 'mis-tramites' | 'perfil') => void;
   onNuevaIntervencion: () => void;
-  tieneObservadas?: boolean;
+  /** Las correcciones las hace oficina: en lugar de "Observadas", sincronizar a mano. */
+  onSincronizar: () => void;
+  sincronizando?: boolean;
   pendientesSync?: number;
 }
 
@@ -23,7 +25,8 @@ export default function BottomNavBar({
   vistaActual,
   onCambiarVista,
   onNuevaIntervencion,
-  tieneObservadas = false,
+  onSincronizar,
+  sincronizando = false,
   pendientesSync = 0,
 }: Props) {
   const tieneNotificacionInicio = pendientesSync > 0;
@@ -79,17 +82,17 @@ export default function BottomNavBar({
         </button>
       </div>
 
-      {/* 4. Observadas */}
-      <button type="button" className={navItem(vistaActual === 'observadas')} onClick={() => onCambiarVista('observadas')}>
-        <div className={iconWrapper}>
+      {/* 4. Sincronizar */}
+      <button type="button" className={navItem(false)} onClick={onSincronizar} disabled={sincronizando} aria-label="Sincronizar">
+        <div className={cn(iconWrapper, sincronizando && 'animate-spin')}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-            <line x1="12" y1="9" x2="12" y2="13" />
-            <line x1="12" y1="17" x2="12.01" y2="17" />
+            <path d="M21 12a9 9 0 0 1-15.36 6.36L3 16M3 12a9 9 0 0 1 15.36-6.36L21 8" />
+            <polyline points="21 3 21 8 16 8" />
+            <polyline points="3 21 3 16 8 16" />
           </svg>
-          {tieneObservadas && <span className={cn(navDot, 'bg-warning')} />}
+          {pendientesSync > 0 && !sincronizando && <span className={cn(navDot, 'bg-warning')} />}
         </div>
-        <span className={navLabel}>Observadas</span>
+        <span className={navLabel}>{sincronizando ? 'Enviando…' : 'Sincronizar'}</span>
       </button>
 
       {/* 5. Perfil */}
