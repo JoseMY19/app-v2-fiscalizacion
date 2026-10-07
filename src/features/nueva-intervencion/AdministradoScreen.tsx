@@ -3,6 +3,7 @@ import { MotivoNoIdentificado } from '@pas-sjl/shared-types';
 import { db } from '../../lib/db';
 import { guardarAdministrado, marcarAdministradoNoIdentificado } from './administrado.repository';
 import { validarNumeroDocumento, type TipoDocumentoAdministrado } from './validacion-documento';
+import { consultarLicenciaItse, type ResumenLicenciaItse } from './bases-municipales.repository';
 
 /**
  * HU-04 — Registrar datos del administrado.
@@ -52,6 +53,9 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
   const [motivo, setMotivo] = useState<MotivoNoIdentificado | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Consulta en línea de licencia e ITSE (ayuda para elegir el código; nunca bloquea).
+  const [consulta, setConsulta] = useState<ResumenLicenciaItse | null | 'sin-datos'>(null);
+  const [consultando, setConsultando] = useState(false);
 
   // HU-19: precarga lo ya guardado, sea el camino identificado o no-identificado.
   useEffect(() => {
@@ -230,6 +234,39 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
             />
           </div>
         </div>
+
+        {numeroDocumento.trim().length >= 8 && (
+          <div className="mb-[1rem]">
+            <button
+              type="button"
+              className={btn('secondary', { block: true })}
+              disabled={consultando}
+              onClick={async () => {
+                setConsultando(true);
+                const r = await consultarLicenciaItse(numeroDocumento);
+                setConsulta(r ?? 'sin-datos');
+                setConsultando(false);
+              }}
+            >
+              {consultando ? 'Consultando…' : 'Consultar licencia e ITSE (requiere conexión)'}
+            </button>
+            {consulta === 'sin-datos' && <div className="text-[0.8rem] text-text-muted mt-[0.4rem]">No se pudo consultar (sin conexión). Puedes continuar.</div>}
+            {consulta && consulta !== 'sin-datos' && (
+              <div className="mt-[0.5rem] rounded-[10px] border border-border bg-bg-subtle p-[0.75rem] text-[0.85rem] flex flex-col gap-[0.25rem]">
+                <div>
+                  <strong>Licencia:</strong> {consulta.tieneLicenciaVigente ? 'vigente' : consulta.licencia ? 'no vigente' : 'no registra'}
+                  {consulta.licencia ? ` · N° ${consulta.licencia.numero ?? '—'} · ${consulta.licencia.giro ?? ''}${consulta.licencia.horario ? ` · ${consulta.licencia.horario}` : ''}` : ''}
+                </div>
+                <div>
+                  <strong>ITSE:</strong> {consulta.tieneItseVigente ? 'vigente' : consulta.itse ? 'vencido' : 'no registra'}
+                  {consulta.riesgo ? ` · riesgo ${consulta.riesgo}` : ''}
+                  {consulta.itse?.caduca ? ` · caduca ${consulta.itse.caduca.slice(0, 10).split('-').reverse().join('/')}` : ''}
+                </div>
+                {consulta.sugerenciaCuis && <div className="text-[#9a3412]">Código sugerido: {consulta.sugerenciaCuis}. Tú decides.</div>}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className={formGroup}>
           <label className={cn(formLabel, formLabelRequired)}>Nombres / Razón social</label>
