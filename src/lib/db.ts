@@ -77,18 +77,30 @@ export interface FotoLocal {
 }
 
 /**
- * HU-18: firma capturada en el propio dispositivo del fiscalizador. La
- * firma del administrado NO se captura digitalmente aquí — es el celular
- * personal (BYOD) de otra persona, validez legal débil sin validación del
- * área legal; esa evidencia es una foto del acta física firmada (HU-17).
+ * HU-18: firma capturada en el propio dispositivo del fiscalizador. A partir del 2026-10-09,
+ * también se captura opcionalmente la firma del administrado — pero se MANTIENE además
+ * la foto del acta física firmada como respaldo legal obligatorio.
+ * Se puede tener dos firmas independientes por intervención: INSPECTOR y ADMINISTRADO.
  */
 export interface FirmaLocal {
   id?: number;
   intervencionLocalId: string;
-  rol: 'INSPECTOR';
+  rol: 'INSPECTOR' | 'ADMINISTRADO';
   blob: Blob;
   capturadaEn: string;
   sincronizada: boolean; // HU-24: igual que FotoLocal.sincronizada — evidencia sube independiente del bundle
+}
+
+/**
+ * Firma registrada del fiscalizador en su perfil — se reutiliza automáticamente
+ * en las siguientes intervenciones sin necesidad de refirmar. Permite workflows
+ * offline: si hay una local con pendienteSubir:false, no requiere red.
+ */
+export interface FirmaPerfilLocal {
+  usuarioId: string; // PK
+  blob: Blob;
+  actualizadaEn: string;
+  pendienteSubir: boolean; // si false, es una copia del servidor (sin red necesaria)
 }
 
 export interface ColaSincronizacion {
@@ -281,6 +293,7 @@ class PasCampoDB extends Dexie {
   actasAdicionales!: Table<ActaAdicionalLocal, number>;
   firmas!: Table<FirmaLocal, number>;
   testigos!: Table<TestigoLocal, number>;
+  firmaPerfil!: Table<FirmaPerfilLocal, string>;
 
   constructor() {
     super('pas-campo-db');
@@ -433,6 +446,26 @@ class PasCampoDB extends Dexie {
       firmas: '++id, intervencionLocalId, sincronizada',
       testigos: '++id, intervencionLocalId',
       usuariosCache: null,
+    });
+    // version(10): firma registrada del fiscalizador en su perfil (reutilizable
+    // entre intervenciones). Tabla nueva para almacenar blob + estado de sincronización.
+    this.version(10).stores({
+      intervenciones: 'localId, serverId, estado, creadoEn',
+      fotos: '++id, intervencionLocalId, sincronizada',
+      colaSincronizacion: '++id, intervencionLocalId, estado',
+      cuisCache: 'id, codigo',
+      administrados: 'intervencionLocalId',
+      intervencionCuis: '++id, intervencionLocalId',
+      actasExhortacion: 'intervencionLocalId',
+      actasFiscalizacion: 'intervencionLocalId',
+      notificacionesCargo: 'intervencionLocalId',
+      uitCache: 'id, anio',
+      actasMedidaProvisional: '++id, intervencionLocalId',
+      actasValorizacionObra: '++id, intervencionLocalId',
+      actasAdicionales: '++id, intervencionLocalId',
+      firmas: '++id, intervencionLocalId, sincronizada',
+      testigos: '++id, intervencionLocalId',
+      firmaPerfil: 'usuarioId',
     });
   }
 }

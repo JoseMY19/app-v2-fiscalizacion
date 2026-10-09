@@ -4,6 +4,8 @@ import { calcularEsperaMs } from './backoff';
 import { listarPendientes, obtenerEntrada } from './sync-cola.repository';
 import { sincronizarIntervencion } from './sincronizar-intervencion';
 import { emitirCambioSync } from './sync-eventos';
+import { obtenerFiscalizadorActivo } from '../auth/auth.repository';
+import { descargarFirmaPerfil, subirFirmaPerfilPendiente } from '../evidencia/firma-perfil.repository';
 
 /**
  * HU-24: motor en segundo plano. Nunca bloquea la UI — todo es fetch
@@ -63,6 +65,14 @@ export async function escanearYSincronizar(forzado = false): Promise<void> {
   if (escaneando) return;
   escaneando = true;
   try {
+    // Firma registrada del fiscalizador: primero sube la dibujada sin red,
+    // luego trae la del servidor. Ambas funciones nunca lanzan.
+    const usuarioId = obtenerFiscalizadorActivo();
+    if (usuarioId) {
+      await subirFirmaPerfilPendiente(usuarioId);
+      await descargarFirmaPerfil(usuarioId);
+    }
+
     for (const id of await idsPendientes()) {
       await intentarUno(id, forzado);
     }

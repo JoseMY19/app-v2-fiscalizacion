@@ -18,6 +18,7 @@ export interface UsuarioSesion {
   rol: string;
   rolNombre?: string;
   debeCambiarContrasena?: boolean;
+  tieneFirmaRegistrada?: boolean;
 }
 
 interface Sesion {
@@ -92,6 +93,11 @@ export async function login(dni: string, contrasena: string): Promise<UsuarioSes
   }
   const data: { accessToken: string; refreshToken: string; usuario: UsuarioSesion } = await respuesta.json();
   guardarSesion({ accessToken: data.accessToken, refreshToken: data.refreshToken, usuario: data.usuario });
+
+  // Descarga la firma registrada en segundo plano sin bloquear (fire and forget)
+  const { descargarFirmaPerfil } = await import('../evidencia/firma-perfil.repository');
+  void descargarFirmaPerfil(data.usuario.id);
+
   return data.usuario;
 }
 
