@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
-import { ModoNotificacion } from '@pas-sjl/shared-types';
+import { ModoNotificacion, MotivoNoIdentificado } from '@pas-sjl/shared-types';
+import { db } from '../../lib/db';
 import { guardarEntregaNotificacionCargo, obtenerNotificacionCargo } from './notificacion-cargo.repository';
 
 /**
- * HU-20 — Registrar negativa a firmar o identificarse. Habilita
- * características del domicilio (no obligatorias). Los 2 testigos ya NO
- * dependen de esta negativa (cambio de regla, 2026-09-14) — se capturan
- * siempre, en TestigosScreen, un paso antes en el flujo, para los 3 caminos.
+ * HU-20 — Registrar negativa a firmar. Habilita características del domicilio
+ * (no obligatorias) solo si hay negativa a firmar/recibir. (2026-10-09) La
+ * negativa a identificarse ya se registra en el paso Administrado y se lee
+ * desde allí, no se vuelve a preguntar — ver AdministradoScreen.
+ * Los 2 testigos ya NO dependen de esta negativa (cambio de regla, 2026-09-14)
+ * — se capturan siempre, en TestigosScreen, un paso antes en el flujo.
  *
  * HU-21 — ¿Se entregó la NC en el acto? Sí → PERSONAL_FIRMA (o
  * PERSONAL_NEGATIVA si hubo negativa a firmar) + fecha/hora automática +
@@ -19,7 +22,7 @@ import { guardarEntregaNotificacionCargo, obtenerNotificacionCargo } from './not
 
 import WizardHeader from '../../components/WizardHeader';
 import { cn } from '../../lib/cn';
-import { actionsFooter, alerta, appContainer, btn, card, formGroup, formInput, formLabel, formLabelRequired, formTextarea, optionCard, optionCardContent, optionCardDesc, optionCardTitle, optionRadio, optionRadioDot, optionsGrid } from '../../lib/ui';
+import { actionsFooter, alerta, appContainer, btn, card, formGroup, formHint, formInput, formLabel, formLabelRequired, formTextarea, optionCard, optionCardContent, optionCardDesc, optionCardTitle, optionRadio, optionRadioDot, optionsGrid } from '../../lib/ui';
 
 interface Props {
   localId: string;
@@ -28,7 +31,7 @@ interface Props {
 }
 
 export default function NotificacionEntregaScreen({ localId, onContinuar, onVolver }: Props) {
-  const [seNegoIdentificarse, setSeNegoIdentificarse] = useState(false);
+  const [negoIdentificarseEnAdministrado, setNegoIdentificarseEnAdministrado] = useState(false);
   const [seNegoFirmar, setSeNegoFirmar] = useState(false);
   const [domicilioPuertas, setDomicilioPuertas] = useState('');
   const [domicilioPisos, setDomicilioPisos] = useState('');
@@ -42,9 +45,14 @@ export default function NotificacionEntregaScreen({ localId, onContinuar, onVolv
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Leer negativa a identificarse del paso Administrado.
+    db.administrados.get(localId).then((administrado) => {
+      const negoIdentificarse = administrado?.identificado === false && administrado.motivoNoIdentificado === MotivoNoIdentificado.SE_NEGO;
+      setNegoIdentificarseEnAdministrado(negoIdentificarse);
+    });
+
     obtenerNotificacionCargo(localId).then((nc) => {
       if (!nc) return;
-      setSeNegoIdentificarse(nc.seNegoIdentificarse ?? false);
       setSeNegoFirmar(nc.seNegoFirmar ?? false);
       setDomicilioPuertas(nc.domicilioPuertas ?? '');
       setDomicilioPisos(nc.domicilioPisos ?? '');
@@ -57,7 +65,6 @@ export default function NotificacionEntregaScreen({ localId, onContinuar, onVolv
     });
   }, [localId]);
 
-  const hayNegativa = seNegoIdentificarse || seNegoFirmar;
   const puedeGuardar = entregadaEnElActo !== null;
 
   async function handleGuardar() {
@@ -66,7 +73,6 @@ export default function NotificacionEntregaScreen({ localId, onContinuar, onVolv
     setError(null);
     try {
       await guardarEntregaNotificacionCargo(localId, {
-        seNegoIdentificarse,
         seNegoFirmar,
         domicilioPuertas,
         domicilioPisos,
@@ -96,39 +102,39 @@ export default function NotificacionEntregaScreen({ localId, onContinuar, onVolv
         deshabilitarVolver={guardando}
       />
 
-      {/* Tarjeta 1: Constancia de Negativa */}
+      {/* Tarjeta 1: Negativa del administrado */}
       <div className={card()}>
         <label className={cn(formLabel, 'mb-[0.75rem]!')}>
-          Constancia física de negativa (si aplica)
+          Negativa del administrado (si aplica)
         </label>
 
-        <div className="flex flex-col gap-[0.625rem]">
-          <label className={cn(optionCard(seNegoIdentificarse), 'cursor-pointer!')}>
-            <input
-              type="checkbox"
-              checked={seNegoIdentificarse}
-              onChange={(e) => setSeNegoIdentificarse(e.target.checked)} className="w-[18px] h-[18px] accent-primary-600"
-            />
-            <span className={optionCardTitle}>El administrado se negó a identificarse</span>
-          </label>
+        {negoIdentificarseEnAdministrado && (
+          <div className={cn(alerta('info'), 'mb-[0.75rem]!')}>
+            Registrado en el paso Administrado: se negó a identificarse.
+          </div>
+        )}
 
+        <div className="flex flex-col gap-[0.625rem]">
           <label className={cn(optionCard(seNegoFirmar), 'cursor-pointer!')}>
             <input
               type="checkbox"
               checked={seNegoFirmar}
               onChange={(e) => setSeNegoFirmar(e.target.checked)} className="w-[18px] h-[18px] accent-primary-600"
             />
-            <span className={optionCardTitle}>El administrado se negó a firmar el cargo físico</span>
+            <span className={optionCardTitle}>El administrado se negó a firmar y/o recibir el cargo</span>
           </label>
         </div>
       </div>
 
-      {/* Tarjeta 2: características del domicilio, si hubo negativa */}
-      {hayNegativa && (
+      {/* Tarjeta 2: características del domicilio, si se negó a firmar/recibir */}
+      {seNegoFirmar && (
         <div className={card('warning')}>
           <h3 className="text-[0.875rem] uppercase tracking-[0.05em] text-text-muted mt-0 mr-0 mb-[0.5rem] ml-0">
-            Características del Inmueble (Opcional)
+            Constancia de notificación — características del domicilio (opcional)
           </h3>
+          <p className={cn(formHint, 'mb-[0.75rem]!')}>
+            Se consignan en la constancia que firman los 2 testigos.
+          </p>
           <div className="grid grid-cols-[1fr_1fr_1fr] gap-[0.5rem] mb-[0.5rem]">
             <input
               type="text"
