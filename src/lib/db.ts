@@ -57,6 +57,7 @@ export interface AdministradoLocal {
   intervencionLocalId: string; // FK 1:1, misma semántica que Administrado.intervencionId en Prisma
   identificado: boolean;
   motivoNoIdentificado?: MotivoNoIdentificado;
+  motivoNoIdentificadoDetalle?: string; // obligatorio cuando el motivo es OTRO
   tipoDocumento?: string;
   numeroDocumento?: string;
   nombresRazonSocial?: string;

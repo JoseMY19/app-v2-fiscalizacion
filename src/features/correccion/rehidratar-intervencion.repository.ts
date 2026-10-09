@@ -66,6 +66,7 @@ export async function rehidratarDesdeServidor(bundle: BundleIntervencion): Promi
           intervencionLocalId: bundle.id,
           identificado: bundle.administrado.identificado,
           motivoNoIdentificado: bundle.administrado.motivoNoIdentificado as MotivoNoIdentificado | undefined,
+          motivoNoIdentificadoDetalle: bundle.administrado.motivoNoIdentificadoDetalle,
           tipoDocumento: bundle.administrado.tipoDocumento,
           numeroDocumento: bundle.administrado.numeroDocumento,
           nombresRazonSocial: bundle.administrado.nombresRazonSocial,

@@ -22,7 +22,7 @@ import { consultarLicenciaItse, type ResumenLicenciaItse } from './bases-municip
 
 import WizardHeader from '../../components/WizardHeader';
 import { cn } from '../../lib/cn';
-import { actionsFooter, alerta, appContainer, btn, card, formGroup, formInput, formLabel, formLabelRequired, formSelect, optionCard, optionCardContent, optionCardDesc, optionCardTitle, optionRadio, optionRadioDot, optionsGrid, saneamientoNotice, saneamientoNoticeDesc, saneamientoNoticeIcon, saneamientoNoticeTitle, sectionLabel, sectionLabelRequired } from '../../lib/ui';
+import { actionsFooter, alerta, appContainer, btn, card, formGroup, formInput, formLabel, formLabelRequired, formSelect, formTextarea, optionCard, optionCardContent, optionCardDesc, optionCardTitle, optionRadio, optionRadioDot, optionsGrid, saneamientoNotice, saneamientoNoticeDesc, saneamientoNoticeIcon, saneamientoNoticeTitle, sectionLabel, sectionLabelRequired } from '../../lib/ui';
 
 const MOTIVOS: { valor: MotivoNoIdentificado; etiqueta: string; desc: string }[] = [
   { valor: MotivoNoIdentificado.VIA_PUBLICA, etiqueta: 'Vía pública', desc: 'Comercio o actividad realizada en espacio público sin puesto fijo' },
@@ -51,6 +51,7 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
   const [giroUso, setGiroUso] = useState('');
   const [numeroLicenciaFuncionamiento, setNumeroLicenciaFuncionamiento] = useState('');
   const [motivo, setMotivo] = useState<MotivoNoIdentificado | null>(null);
+  const [motivoDetalle, setMotivoDetalle] = useState('');
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Consulta en línea de licencia e ITSE (ayuda para elegir el código; nunca bloquea).
@@ -64,6 +65,7 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
       if (!administrado.identificado) {
         setMostrandoNoIdentificado(true);
         if (administrado.motivoNoIdentificado) setMotivo(administrado.motivoNoIdentificado);
+        setMotivoDetalle(administrado.motivoNoIdentificadoDetalle ?? '');
         return;
       }
       setTipoDocumento((administrado.tipoDocumento as TipoDocumentoAdministrado) ?? 'DNI');
@@ -105,12 +107,15 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
     }
   }
 
+  // Con "Otro motivo" el fiscalizador debe describir la situación (mín. 10 caracteres).
+  const detalleCompleto = motivo !== MotivoNoIdentificado.OTRO || motivoDetalle.trim().length >= 10;
+
   async function handleConfirmarNoIdentificado() {
-    if (!motivo || guardando) return;
+    if (!motivo || !detalleCompleto || guardando) return;
     setGuardando(true);
     setError(null);
     try {
-      await marcarAdministradoNoIdentificado(localId, motivo);
+      await marcarAdministradoNoIdentificado(localId, motivo, motivoDetalle);
       onFinalizar({ identificado: false });
     } finally {
       setGuardando(false);
@@ -173,6 +178,20 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
               );
             })}
           </div>
+
+          {motivo === MotivoNoIdentificado.OTRO && (
+            <div className={cn(formGroup, 'mt-[1rem]')}>
+              <label className={cn(formLabel, formLabelRequired)}>Describe el motivo</label>
+              <textarea
+                className={formTextarea}
+                value={motivoDetalle}
+                onChange={(e) => setMotivoDetalle(e.target.value)}
+                maxLength={300}
+                rows={3}
+                placeholder="Qué ocurrió y por qué no se pudo identificar (mínimo 10 caracteres)"
+              />
+            </div>
+          )}
         </div>
 
         <div className={actionsFooter}>
@@ -180,7 +199,7 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
             type="button"
             className={btn('primary', { tamano: 'lg', block: true })}
             onClick={handleConfirmarNoIdentificado}
-            disabled={!motivo || guardando}
+            disabled={!motivo || !detalleCompleto || guardando}
           >
             {guardando ? 'Guardando…' : 'Confirmar y Continuar'}
           </button>

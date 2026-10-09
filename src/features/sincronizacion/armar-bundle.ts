@@ -26,6 +26,7 @@ export interface BundleIntervencion {
   administrado?: {
     identificado: boolean;
     motivoNoIdentificado?: string;
+    motivoNoIdentificadoDetalle?: string;
     tipoDocumento?: string;
     numeroDocumento?: string;
     nombresRazonSocial?: string;
@@ -125,6 +126,7 @@ export async function armarBundle(intervencionLocalId: string): Promise<BundleIn
       ? {
           identificado: administrado.identificado,
           motivoNoIdentificado: administrado.motivoNoIdentificado,
+          motivoNoIdentificadoDetalle: administrado.motivoNoIdentificadoDetalle,
           tipoDocumento: administrado.tipoDocumento,
           numeroDocumento: administrado.numeroDocumento,
           nombresRazonSocial: administrado.nombresRazonSocial,
