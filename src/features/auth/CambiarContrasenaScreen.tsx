@@ -9,9 +9,11 @@ import { alerta, btn, formGroup, formInput, formLabel, formLabelRequired } from 
  */
 interface Props {
   onListo: () => void;
+  /** Salida de emergencia (sesión vencida o usuario equivocado); solo cuando la pantalla es obligatoria al reabrir la app. */
+  onCerrarSesion?: () => void;
 }
 
-export default function CambiarContrasenaScreen({ onListo }: Props) {
+export default function CambiarContrasenaScreen({ onListo, onCerrarSesion }: Props) {
   const [contrasenaActual, setContrasenaActual] = useState('');
   const [contrasenaNueva, setContrasenaNueva] = useState('');
   const [confirmarContrasena, setConfirmarContrasena] = useState('');
@@ -207,6 +209,11 @@ export default function CambiarContrasenaScreen({ onListo }: Props) {
               )}
             </button>
           </form>
+          {onCerrarSesion && (
+            <button type="button" className={cn(btn('secondary', { tamano: 'md', block: true }), 'mt-3!')} onClick={onCerrarSesion} disabled={enviando}>
+              Cerrar sesión
+            </button>
+          )}
         </div>
       </div>
     </div>

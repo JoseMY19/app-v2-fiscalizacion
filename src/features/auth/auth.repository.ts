@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '../../lib/config';
 import { generarUuid } from '../../lib/uuid';
+import { fetchAutenticado } from './fetch-autenticado';
 
 /**
  * HU-28 — reemplaza al gate simplificado "¿Quién eres?" (HU-24) por login
@@ -113,12 +114,11 @@ export async function cambiarContrasena(contrasenaActual: string, contrasenaNuev
     throw new Error('No hay sesión activa.');
   }
 
-  const respuesta = await fetch(`${API_BASE_URL}/auth/cambiar-contrasena`, {
+  // fetchAutenticado renueva el access token (dura 15 min) si ya venció: este
+  // paso ahora también se muestra al reabrir la app, horas después del login.
+  const respuesta = await fetchAutenticado(`${API_BASE_URL}/auth/cambiar-contrasena`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${sesion.accessToken}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ contrasenaActual, contrasenaNueva }),
   });
 

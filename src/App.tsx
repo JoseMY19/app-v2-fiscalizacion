@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { TipoActuacion } from '@pas-sjl/shared-types';
 import NuevaIntervencionWizard from './features/nueva-intervencion/NuevaIntervencionWizard';
 import LoginScreen from './features/auth/LoginScreen';
-import { obtenerFiscalizadorActivo } from './features/auth/auth.repository';
+import CambiarContrasenaScreen from './features/auth/CambiarContrasenaScreen';
+import { cerrarSesion, obtenerFiscalizadorActivo, obtenerSesion } from './features/auth/auth.repository';
 import { contarPendientes } from './features/sincronizacion/sync-cola.repository';
 import { escanearYSincronizar, iniciarMotorSincronizacion } from './features/sincronizacion/motor-sincronizacion';
 import { suscribirseACambiosSync, suscribirseASesionExpirada } from './features/sincronizacion/sync-eventos';
@@ -87,6 +88,7 @@ export default function App() {
     const fiscalizador = obtenerFiscalizadorActivo();
     setTieneFiscalizador(fiscalizador !== null);
     setFiscalizadorDni(fiscalizador);
+    setDebeCambiarContrasena(obtenerSesion()?.usuario.debeCambiarContrasena === true);
   }, []);
 
   useEffect(() => {
@@ -147,6 +149,20 @@ export default function App() {
       setTieneFiscalizador(true);
       setFiscalizadorDni(f);
     }} />;
+  }
+
+  if (debeCambiarContrasena) {
+    return (
+      <CambiarContrasenaScreen
+        onListo={() => setDebeCambiarContrasena(false)}
+        onCerrarSesion={() => {
+          cerrarSesion();
+          setDebeCambiarContrasena(false);
+          setTieneFiscalizador(false);
+          setFiscalizadorDni(null);
+        }}
+      />
+    );
   }
 
   const contenido =
