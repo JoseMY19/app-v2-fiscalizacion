@@ -74,11 +74,16 @@ export function obtenerFiscalizadorActivo(): string | null {
 }
 
 export async function login(dni: string, contrasena: string): Promise<UsuarioSesion> {
-  const respuesta = await fetch(`${API_BASE_URL}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-App': 'campo' },
-    body: JSON.stringify({ dni, contrasena }),
-  });
+  let respuesta: Response;
+  try {
+    respuesta = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-App': 'campo' },
+      body: JSON.stringify({ dni, contrasena }),
+    });
+  } catch {
+    throw new Error('No hay conexión con el servidor. Revisa tu señal o tu red e intenta de nuevo.');
+  }
   if (!respuesta.ok) {
     let mensaje = 'No se pudo iniciar sesión. Revisa tu conexión.';
     if (respuesta.status === 401) {
@@ -87,8 +92,10 @@ export async function login(dni: string, contrasena: string): Promise<UsuarioSes
       } catch {
         mensaje = 'DNI o contraseña incorrectos.';
       }
+    } else if (respuesta.status >= 500) {
+      mensaje = 'El servidor tuvo un problema. Intenta de nuevo en unos minutos.';
     } else {
-      mensaje = `El servidor respondió HTTP ${respuesta.status}.`;
+      mensaje = 'No se pudo comunicar con el servidor. Intenta de nuevo o avisa al administrador del sistema.';
     }
     throw new Error(mensaje);
   }
