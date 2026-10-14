@@ -7,7 +7,7 @@ import type {
   TipoActuacion,
 } from '@pas-sjl/shared-types';
 import { EstadoIntervencion } from '@pas-sjl/shared-types';
-import { db, type IntervencionLocal } from '../../lib/db';
+import { db, type IntervencionLocal, type TipoMedidaProvisional } from '../../lib/db';
 import { obtenerFiscalizadorActivo } from '../auth/auth.repository';
 import type { BundleIntervencion } from '../sincronizacion/armar-bundle';
 
@@ -66,6 +66,7 @@ export async function rehidratarDesdeServidor(bundle: BundleIntervencion): Promi
           intervencionLocalId: bundle.id,
           identificado: bundle.administrado.identificado,
           motivoNoIdentificado: bundle.administrado.motivoNoIdentificado as MotivoNoIdentificado | undefined,
+          motivoNoIdentificadoDetalle: bundle.administrado.motivoNoIdentificadoDetalle,
           tipoDocumento: bundle.administrado.tipoDocumento,
           numeroDocumento: bundle.administrado.numeroDocumento,
           nombresRazonSocial: bundle.administrado.nombresRazonSocial,
@@ -160,7 +161,9 @@ export async function rehidratarDesdeServidor(bundle: BundleIntervencion): Promi
         bundle.actasMedidaProvisional.map((m) => ({
           intervencionLocalId: bundle.id,
           ...m,
-          tipoMedida: m.tipoMedida as 'CLAUSURA' | 'PARALIZACION' | 'OTROS',
+          tipoMedida: m.tipoMedida as TipoMedidaProvisional,
+          // El servidor devuelve null en actas previas a C3 — se conserva como "no registrado".
+          seEjecutoEnActo: m.seEjecutoEnActo ?? undefined,
           creadoEn: ahora,
         })),
       );

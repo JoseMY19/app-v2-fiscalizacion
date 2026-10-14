@@ -6,8 +6,8 @@ export interface DatosTestigo {
 }
 
 /**
- * Testigo 1 obligatorio, testigo 2 opcional (cambio de regla 2026-09-18)
- * — reemplaza los anteriores, no los acumula.
+ * Ambos testigos opcionales (cambio de regla 2026-09-30) — la lista puede
+ * venir vacía. Reemplaza los anteriores, no los acumula.
  */
 export async function guardarTestigos(intervencionLocalId: string, testigos: DatosTestigo[]): Promise<void> {
   await db.transaction('rw', db.testigos, async () => {

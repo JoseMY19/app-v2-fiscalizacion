@@ -41,7 +41,7 @@ export default function AppHeader({
       : 'bg-bg-subtle border-border text-text-body';
 
   return (
-    <header className="bg-white border-b border-solid border-border shadow-[0_1px_3px_0_rgba(14,26,59,0.05)] fixed top-0 left-0 right-0 h-[58px] z-40 max-w-[480px] mx-auto px-4 flex items-center">
+    <header className="bg-white border-0 border-b border-solid border-border shadow-[0_1px_3px_0_rgba(14,26,59,0.05)] fixed top-0 left-0 right-0 h-[58px] z-40 max-w-[480px] mx-auto px-4 flex items-center">
       <div className="w-full flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <img

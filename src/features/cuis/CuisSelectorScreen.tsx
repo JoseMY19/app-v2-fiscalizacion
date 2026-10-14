@@ -8,11 +8,13 @@ import {
 } from './cuis-catalogo.repository';
 import {
   agregarCuisSeleccionado,
+  listarCuisHuerfanos,
   listarCuisSeleccionadosConDetalle,
   quitarCuisSeleccionado,
   type SeleccionCuisConDetalle,
 } from './intervencion-cuis.repository';
 import { etiquetaEscala } from './etiqueta-escala';
+import type { IntervencionCuisLocal } from '../../lib/db';
 
 /**
  * HU-07 — Seleccionar código de infracción (CUIS).
@@ -47,9 +49,11 @@ export default function CuisSelectorScreen({ localId, onContinuar, onVolver }: P
   const [codigoPendienteDeEscala, setCodigoPendienteDeEscala] = useState<CuisCodigoLocal | null>(null);
 
   const [seleccionados, setSeleccionados] = useState<SeleccionCuisConDetalle[]>([]);
+  const [huerfanos, setHuerfanos] = useState<IntervencionCuisLocal[]>([]);
 
   async function cargarSeleccionados() {
     setSeleccionados(await listarCuisSeleccionadosConDetalle(localId));
+    setHuerfanos(await listarCuisHuerfanos(localId));
   }
 
   useEffect(() => {
@@ -258,6 +262,23 @@ export default function CuisSelectorScreen({ localId, onContinuar, onVolver }: P
             {seleccionados.length} código(s)
           </span>
         </div>
+
+        {huerfanos.length > 0 && (
+          <div className="mb-[0.75rem] p-[0.75rem] rounded-md border border-solid border-danger-border bg-danger-bg text-danger text-[0.875rem]">
+            <p className="m-0 mb-[0.5rem]">
+              {huerfanos.length === 1 ? 'Un código de esta intervención' : `${huerfanos.length} códigos de esta intervención`} ya
+              no existe en el catálogo actualizado. Quítalo y vuelve a elegirlo, si no el servidor rechazará la sincronización.
+            </p>
+            {huerfanos.map((h) => (
+              <div key={h.id} className="flex items-center justify-between gap-[0.5rem] mb-[0.25rem]">
+                <span>{h.codigoNormativo ? `Código ${h.codigoNormativo}` : 'Código desconocido'}</span>
+                <button type="button" className={btn('danger', { tamano: 'sm' })} onClick={() => handleQuitar(h.id)}>
+                  Quitar
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         {seleccionados.length === 0 ? (
           <p className="text-[0.875rem] text-text-muted mb-0 py-[0.5rem] px-0">
