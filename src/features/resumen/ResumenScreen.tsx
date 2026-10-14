@@ -79,7 +79,7 @@ export default function ResumenScreen({
       if (notificacionCargo?.modoNotificacion) {
         const fecha = notificacionCargo.fechaNotificacion?.slice(0, 16).replace('T', ' ');
         if (notificacionCargo.modoNotificacion === 'DOMICILIARIA_PENDIENTE') {
-          entregaNcTexto = 'No entregada en el acto — pendiente de notificación domiciliaria.';
+          entregaNcTexto = 'No entregada en el acto - pendiente de notificación domiciliaria.';
         } else if (notificacionCargo.modoNotificacion === 'PERSONAL_NEGATIVA') {
           // Testigos opcionales (C1): solo se menciona si realmente se registraron.
           const totalTestigos = await db.testigos.where('intervencionLocalId').equals(localId).count();
@@ -92,12 +92,12 @@ export default function ResumenScreen({
       setDatos({
         tipoActuacion: intervencion?.tipoActuacion,
         administradoTexto: administrado?.identificado
-          ? `${administrado.nombresRazonSocial ?? '(sin nombre)'} — ${administrado.numeroDocumento ?? '(sin documento)'}`
+          ? `${administrado.nombresRazonSocial ?? '(sin nombre)'} - ${administrado.numeroDocumento ?? '(sin documento)'}`
           : 'No identificado (pendiente de saneamiento)',
         ubicacionTexto: intervencion?.latitud
           ? `${intervencion.latitud.toFixed(5)}, ${intervencion.longitud?.toFixed(5)}`
           : intervencion?.direccionAproximada ?? '(sin ubicación)',
-        cuisTextos: cuis.map((s) => `${s.codigo.codigo} — ${s.codigo.descripcion ?? ''}`),
+        cuisTextos: cuis.map((s) => `${s.codigo.codigo} - ${s.codigo.descripcion ?? ''}`),
         tieneActaExhortacion: !!actaExhortacion,
         tieneActaFiscalizacion: !!actaFiscalizacion,
         tieneNotificacionCargo: !!notificacionCargo,
@@ -415,7 +415,7 @@ export default function ResumenScreen({
               onChange={(e) => setComentarioCorreccion(e.target.value)}
               disabled={finalizando}
             />
-            <span className={formHint}>Obligatorio — el validador necesita saber qué cambió antes de revisarlo de nuevo.</span>
+            <span className={formHint}>Obligatorio - el validador necesita saber qué cambió antes de revisarlo de nuevo.</span>
           </div>
         </div>
       )}

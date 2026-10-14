@@ -71,6 +71,9 @@ export default function App() {
   // (Dexie), así que un token vencido nunca debe tapar la app.
   const [tieneFiscalizador, setTieneFiscalizador] = useState<boolean | null>(null);
   const [fiscalizadorDni, setFiscalizadorDni] = useState<string | null>(null);
+  // Contraseña temporal: si cerró la app antes de cambiarla, al volver sigue
+  // obligado — la bandera queda en la sesión guardada hasta que la cambie.
+  const [debeCambiarContrasena, setDebeCambiarContrasena] = useState(false);
   // HU-29: aviso no bloqueante cuando el refresh token venció o fue
   // revocado — pausa la sincronización, nunca la captura. `mostrarLogin`
   // abre el formulario en un overlay SIN desmontar la vista de abajo (la
@@ -383,7 +386,7 @@ export default function App() {
             <div className="flex-1">
               <div className="font-semibold mb-0.5">Sesión expirada</div>
               <p className="text-[0.8125rem] mb-2">
-                Tu sesión venció y no se pudo renovar. La sincronización queda pausada — lo que ya capturaste no se pierde.
+                Tu sesión venció y no se pudo renovar. La sincronización queda pausada - lo que ya capturaste no se pierde.
               </p>
               <button
                 type="button"

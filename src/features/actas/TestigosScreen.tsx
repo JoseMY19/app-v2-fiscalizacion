@@ -86,7 +86,7 @@ export default function TestigosScreen({ localId, onContinuar, onVolver }: Props
         pasoActual={6}
         totalPasos={8}
         titulo="Testigos (opcional)"
-        subtitulo="Registra testigos solo si corresponde — un testigo debería ser un tercero ajeno a la entidad"
+        subtitulo="Registra testigos solo si corresponde - un testigo debería ser un tercero ajeno a la entidad"
         onVolver={onVolver}
         deshabilitarVolver={guardando}
       />
