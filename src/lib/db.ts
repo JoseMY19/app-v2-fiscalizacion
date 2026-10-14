@@ -137,6 +137,12 @@ export interface IntervencionCuisLocal {
   cuisCodigoId: string;
   cuisEscalaMontoId?: string; // ausente solo si el código tiene una única escala
   seleccionadoEn: string;
+  // Foto de lo elegido, solo para poder reubicarlo si el catálogo del servidor se
+  // recarga con IDs nuevos (los IDs son los únicos datos "de verdad" de esta fila).
+  codigoNormativo?: string;
+  descripcionCodigo?: string | null;
+  escalaElegida?: 'L' | 'G' | 'MG';
+  condicionEscala?: string | null;
 }
 
 /**
