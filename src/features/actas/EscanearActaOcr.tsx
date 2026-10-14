@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { escanearActaConInternet } from './ocr.repository';
 import { escanearActaSinConexion, type DatosOcrActa } from '../../lib/ocr-offline';
+import { prepararImagenParaOcr } from '../../lib/preparar-imagen-ocr';
 import { alerta, btn, formHint } from '../../lib/ui';
 import { cn } from '../../lib/cn';
 
@@ -18,7 +19,7 @@ interface Props {
   onSugerencias: (datos: DatosOcrActa) => void;
 }
 
-type Estado = 'inactivo' | 'leyendo-nube' | 'leyendo-local' | 'error';
+type Estado = 'inactivo' | 'preparando' | 'leyendo-nube' | 'leyendo-local' | 'error';
 
 export default function EscanearActaOcr({ tipoActa, onSugerencias }: Props) {
   const [estado, setEstado] = useState<Estado>('inactivo');
@@ -27,9 +28,11 @@ export default function EscanearActaOcr({ tipoActa, onSugerencias }: Props) {
 
   async function handleArchivo(archivos: FileList | null) {
     if (!archivos || archivos.length === 0) return;
-    const imagen = archivos[0];
     setError(null);
     setModoUsado(null);
+    setEstado('preparando');
+    // Foto más liviana y con más contraste: la nube solo acepta 1 MB y el modo local tarda menos.
+    const imagen = await prepararImagenParaOcr(archivos[0]);
 
     if (navigator.onLine) {
       setEstado('leyendo-nube');
@@ -63,7 +66,7 @@ export default function EscanearActaOcr({ tipoActa, onSugerencias }: Props) {
     setEstado('inactivo');
   }
 
-  const leyendo = estado === 'leyendo-nube' || estado === 'leyendo-local';
+  const leyendo = estado === 'preparando' || estado === 'leyendo-nube' || estado === 'leyendo-local';
 
   return (
     <div className="mb-[1rem]">
@@ -83,19 +86,32 @@ export default function EscanearActaOcr({ tipoActa, onSugerencias }: Props) {
           <circle cx="12" cy="13" r="4" />
         </svg>
         <span>
+          {estado === 'preparando' && 'Preparando la foto…'}
           {estado === 'leyendo-nube' && 'Leyendo foto (en línea)…'}
           {estado === 'leyendo-local' && 'Leyendo foto sin conexión (puede tardar)…'}
           {!leyendo && 'Escanear acta física y sugerir campos'}
         </span>
       </label>
+      {/* C5: misma lectura OCR desde una foto ya tomada (galería). */}
+      <label
+        className={cn(btn('outline'), 'flex! items-center! justify-center! gap-2! mt-[0.5rem]!', leyendo ? 'cursor-not-allowed!' : 'cursor-pointer!')}
+      >
+        <input type="file" accept="image/*" onChange={(e) => handleArchivo(e.target.files)} disabled={leyendo} className="hidden" />
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <path d="M21 15l-5-5L5 21" />
+        </svg>
+        <span>Elegir de la galería</span>
+      </label>
       <p className={cn(formHint, 'mt-[0.375rem]!')}>
-        Opcional: toma foto del acta ya llena a mano. Los campos se rellenan como sugerencia — siempre revísalos antes de guardar.
+        Opcional: toma o elige una foto del acta ya llena a mano. Los campos se rellenan como sugerencia - siempre revísalos antes de guardar.
       </p>
 
       {modoUsado && (
         <div className={cn(alerta('success'), 'mt-[0.5rem]!')} role="status">
           <span>
-            Sugerencias aplicadas ({modoUsado === 'nube' ? 'lectura en línea' : 'lectura sin conexión, revisa con más cuidado'}) — verifica cada campo antes de guardar.
+            Sugerencias aplicadas ({modoUsado === 'nube' ? 'lectura en línea' : 'lectura sin conexión, revisa con más cuidado'}) - verifica cada campo antes de guardar.
           </span>
         </div>
       )}

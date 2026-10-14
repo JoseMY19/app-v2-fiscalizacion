@@ -50,7 +50,7 @@ export default function NotificacionCargoScreen({ localId, onGuardada, onVolver 
     Promise.all([db.administrados.get(localId), db.intervenciones.get(localId)]).then(([administrado, intervencion]) => {
       setResumen({
         administrado: administrado?.identificado
-          ? `${administrado.nombresRazonSocial ?? '(sin nombre)'} — ${administrado.numeroDocumento ?? '(sin documento)'}`
+          ? `${administrado.nombresRazonSocial ?? '(sin nombre)'} - ${administrado.numeroDocumento ?? '(sin documento)'}`
           : 'No identificado (HU-05)',
         ubicacion: intervencion?.latitud
           ? `${intervencion.latitud.toFixed(5)}, ${intervencion.longitud?.toFixed(5)}`

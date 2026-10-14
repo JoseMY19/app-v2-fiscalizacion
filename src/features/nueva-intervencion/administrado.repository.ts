@@ -27,11 +27,14 @@ export async function guardarAdministrado(intervencionLocalId: string, datos: Da
 export async function marcarAdministradoNoIdentificado(
   intervencionLocalId: string,
   motivo: MotivoNoIdentificado,
+  detalle?: string,
 ): Promise<void> {
   const registro: AdministradoLocal = {
     intervencionLocalId,
     identificado: false,
     motivoNoIdentificado: motivo,
+    // El detalle solo existe cuando el motivo es OTRO.
+    motivoNoIdentificadoDetalle: motivo === MotivoNoIdentificado.OTRO ? detalle?.trim() || undefined : undefined,
     actualizadoEn: new Date().toISOString(),
   };
   await db.administrados.put(registro);

@@ -16,10 +16,22 @@ interface Props {
   actaTipo: string;
   obligatoria: boolean;
   label?: string;
+  /** Texto del botón de cámara; por defecto "Tomar foto del acta". */
+  textoBotonCamara?: string;
+  /** Texto alternativo de la miniatura. */
+  altFoto?: string;
   onCambio?: (tieneFoto: boolean) => void;
 }
 
-export default function AdjuntarFotoActa({ intervencionLocalId, actaTipo, obligatoria, label, onCambio }: Props) {
+export default function AdjuntarFotoActa({
+  intervencionLocalId,
+  actaTipo,
+  obligatoria,
+  label,
+  textoBotonCamara = 'Tomar foto del acta',
+  altFoto = 'Acta física firmada',
+  onCambio,
+}: Props) {
   const [fotos, setFotos] = useState<FotoLocal[]>([]);
   const [previews, setPreviews] = useState<Record<number, string>>({});
   const [procesando, setProcesando] = useState(false);
@@ -76,23 +88,43 @@ export default function AdjuntarFotoActa({ intervencionLocalId, actaTipo, obliga
       </div>
 
       {fotos.length === 0 && (
-        <label
-          className={cn(btn('outline'), 'flex! items-center! justify-center! gap-2!', procesando ? 'cursor-not-allowed!' : 'cursor-pointer!')}
-
-        >
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={(e) => handleArchivo(e.target.files)}
-            disabled={procesando} className="hidden"
-          />
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-            <circle cx="12" cy="13" r="4" />
-          </svg>
-          <span>{procesando ? 'Optimizando…' : 'Tomar foto del acta'}</span>
-        </label>
+        // C5: cámara o galería — misma compresión y guardado (agregarFoto) en ambos casos.
+        <div className="flex flex-col gap-[0.5rem]">
+          <label
+            className={cn(btn('outline'), 'flex! items-center! justify-center! gap-2!', procesando ? 'cursor-not-allowed!' : 'cursor-pointer!')}
+          >
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={(e) => handleArchivo(e.target.files)}
+              disabled={procesando}
+              className="hidden"
+            />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+            <span>{procesando ? 'Optimizando…' : textoBotonCamara}</span>
+          </label>
+          <label
+            className={cn(btn('outline'), 'flex! items-center! justify-center! gap-2!', procesando ? 'cursor-not-allowed!' : 'cursor-pointer!')}
+          >
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleArchivo(e.target.files)}
+              disabled={procesando}
+              className="hidden"
+            />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <path d="M21 15l-5-5L5 21" />
+            </svg>
+            <span>Elegir de la galería</span>
+          </label>
+        </div>
       )}
 
       {error && (
@@ -105,7 +137,7 @@ export default function AdjuntarFotoActa({ intervencionLocalId, actaTipo, obliga
         <div className={photoGrid}>
           {fotos.map((foto) => (
             <div key={foto.id} className={photoItem}>
-              {foto.id !== undefined && previews[foto.id] && <img src={previews[foto.id]} alt="Acta física firmada" className={photoItemImg} />}
+              {foto.id !== undefined && previews[foto.id] && <img src={previews[foto.id]} alt={altFoto} className={photoItemImg} />}
               <button
                 type="button"
                 className={photoItemRemove}

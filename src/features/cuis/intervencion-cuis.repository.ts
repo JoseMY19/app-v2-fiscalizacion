@@ -7,11 +7,17 @@ export async function agregarCuisSeleccionado(
   cuisCodigoId: string,
   cuisEscalaMontoId?: string,
 ): Promise<number> {
+  const codigo = await obtenerCodigoLocalPorId(cuisCodigoId);
+  const escala = codigo?.escalas.find((e) => e.id === cuisEscalaMontoId);
   const registro: IntervencionCuisLocal = {
     intervencionLocalId,
     cuisCodigoId,
     cuisEscalaMontoId,
     seleccionadoEn: new Date().toISOString(),
+    codigoNormativo: codigo?.codigo,
+    descripcionCodigo: codigo?.descripcion,
+    escalaElegida: escala?.escala,
+    condicionEscala: escala?.condicion,
   };
   return db.intervencionCuis.add(registro);
 }
@@ -22,6 +28,17 @@ export async function listarCuisSeleccionados(intervencionLocalId: string): Prom
 
 export async function quitarCuisSeleccionado(id: number): Promise<void> {
   await db.intervencionCuis.delete(id);
+}
+
+/**
+ * Selecciones cuyo código ya no existe en el catálogo local (se recargó con IDs nuevos
+ * y no hubo equivalente exacto). El servidor las rechazaría, así que hay que quitarlas
+ * y volver a elegir el código.
+ */
+export async function listarCuisHuerfanos(intervencionLocalId: string): Promise<IntervencionCuisLocal[]> {
+  const registros = await listarCuisSeleccionados(intervencionLocalId);
+  const existe = await Promise.all(registros.map(async (r) => (await obtenerCodigoLocalPorId(r.cuisCodigoId)) !== undefined));
+  return registros.filter((_, i) => !existe[i]);
 }
 
 export interface SeleccionCuisConDetalle {
