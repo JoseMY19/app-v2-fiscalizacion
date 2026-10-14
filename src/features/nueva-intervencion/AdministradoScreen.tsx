@@ -3,6 +3,7 @@ import { MotivoNoIdentificado } from '@pas-sjl/shared-types';
 import { db } from '../../lib/db';
 import { guardarAdministrado, marcarAdministradoNoIdentificado } from './administrado.repository';
 import { validarNumeroDocumento, type TipoDocumentoAdministrado } from './validacion-documento';
+import { consultarLicenciaItse, type ResumenLicenciaItse } from './bases-municipales.repository';
 
 /**
  * HU-04 — Registrar datos del administrado.
@@ -21,7 +22,7 @@ import { validarNumeroDocumento, type TipoDocumentoAdministrado } from './valida
 
 import WizardHeader from '../../components/WizardHeader';
 import { cn } from '../../lib/cn';
-import { actionsFooter, alerta, appContainer, btn, card, formGroup, formInput, formLabel, formLabelRequired, formSelect, optionCard, optionCardContent, optionCardDesc, optionCardTitle, optionRadio, optionRadioDot, optionsGrid, saneamientoNotice, saneamientoNoticeDesc, saneamientoNoticeIcon, saneamientoNoticeTitle, sectionLabel, sectionLabelRequired } from '../../lib/ui';
+import { actionsFooter, alerta, appContainer, btn, card, formGroup, formInput, formLabel, formLabelRequired, formSelect, formTextarea, optionCard, optionCardContent, optionCardDesc, optionCardTitle, optionRadio, optionRadioDot, optionsGrid, saneamientoNotice, saneamientoNoticeDesc, saneamientoNoticeIcon, saneamientoNoticeTitle, sectionLabel, sectionLabelRequired } from '../../lib/ui';
 
 const MOTIVOS: { valor: MotivoNoIdentificado; etiqueta: string; desc: string }[] = [
   { valor: MotivoNoIdentificado.VIA_PUBLICA, etiqueta: 'Vía pública', desc: 'Comercio o actividad realizada en espacio público sin puesto fijo' },
@@ -50,8 +51,12 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
   const [giroUso, setGiroUso] = useState('');
   const [numeroLicenciaFuncionamiento, setNumeroLicenciaFuncionamiento] = useState('');
   const [motivo, setMotivo] = useState<MotivoNoIdentificado | null>(null);
+  const [motivoDetalle, setMotivoDetalle] = useState('');
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Consulta en línea de licencia e ITSE (ayuda para elegir el código; nunca bloquea).
+  const [consulta, setConsulta] = useState<ResumenLicenciaItse | null | 'sin-datos'>(null);
+  const [consultando, setConsultando] = useState(false);
 
   // HU-19: precarga lo ya guardado, sea el camino identificado o no-identificado.
   useEffect(() => {
@@ -60,6 +65,7 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
       if (!administrado.identificado) {
         setMostrandoNoIdentificado(true);
         if (administrado.motivoNoIdentificado) setMotivo(administrado.motivoNoIdentificado);
+        setMotivoDetalle(administrado.motivoNoIdentificadoDetalle ?? '');
         return;
       }
       setTipoDocumento((administrado.tipoDocumento as TipoDocumentoAdministrado) ?? 'DNI');
@@ -101,12 +107,15 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
     }
   }
 
+  // Con "Otro motivo" el fiscalizador debe describir la situación (mín. 10 caracteres).
+  const detalleCompleto = motivo !== MotivoNoIdentificado.OTRO || motivoDetalle.trim().length >= 10;
+
   async function handleConfirmarNoIdentificado() {
-    if (!motivo || guardando) return;
+    if (!motivo || !detalleCompleto || guardando) return;
     setGuardando(true);
     setError(null);
     try {
-      await marcarAdministradoNoIdentificado(localId, motivo);
+      await marcarAdministradoNoIdentificado(localId, motivo, motivoDetalle);
       onFinalizar({ identificado: false });
     } finally {
       setGuardando(false);
@@ -169,6 +178,20 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
               );
             })}
           </div>
+
+          {motivo === MotivoNoIdentificado.OTRO && (
+            <div className={cn(formGroup, 'mt-[1rem]')}>
+              <label className={cn(formLabel, formLabelRequired)}>Describe el motivo</label>
+              <textarea
+                className={formTextarea}
+                value={motivoDetalle}
+                onChange={(e) => setMotivoDetalle(e.target.value)}
+                maxLength={300}
+                rows={3}
+                placeholder="Qué ocurrió y por qué no se pudo identificar (mínimo 10 caracteres)"
+              />
+            </div>
+          )}
         </div>
 
         <div className={actionsFooter}>
@@ -176,7 +199,7 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
             type="button"
             className={btn('primary', { tamano: 'lg', block: true })}
             onClick={handleConfirmarNoIdentificado}
-            disabled={!motivo || guardando}
+            disabled={!motivo || !detalleCompleto || guardando}
           >
             {guardando ? 'Guardando…' : 'Confirmar y Continuar'}
           </button>
@@ -230,6 +253,39 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
             />
           </div>
         </div>
+
+        {numeroDocumento.trim().length >= 8 && (
+          <div className="mb-[1rem]">
+            <button
+              type="button"
+              className={btn('secondary', { block: true })}
+              disabled={consultando}
+              onClick={async () => {
+                setConsultando(true);
+                const r = await consultarLicenciaItse(numeroDocumento);
+                setConsulta(r ?? 'sin-datos');
+                setConsultando(false);
+              }}
+            >
+              {consultando ? 'Consultando…' : 'Consultar licencia e ITSE (requiere conexión)'}
+            </button>
+            {consulta === 'sin-datos' && <div className="text-[0.8rem] text-text-muted mt-[0.4rem]">No se pudo consultar (sin conexión). Puedes continuar.</div>}
+            {consulta && consulta !== 'sin-datos' && (
+              <div className="mt-[0.5rem] rounded-[10px] border border-border bg-bg-subtle p-[0.75rem] text-[0.85rem] flex flex-col gap-[0.25rem]">
+                <div>
+                  <strong>Licencia:</strong> {consulta.tieneLicenciaVigente ? 'vigente' : consulta.licencia ? 'no vigente' : 'no registra'}
+                  {consulta.licencia ? ` · N° ${consulta.licencia.numero ?? '—'} · ${consulta.licencia.giro ?? ''}${consulta.licencia.horario ? ` · ${consulta.licencia.horario}` : ''}` : ''}
+                </div>
+                <div>
+                  <strong>ITSE:</strong> {consulta.tieneItseVigente ? 'vigente' : consulta.itse ? 'vencido' : 'no registra'}
+                  {consulta.riesgo ? ` · riesgo ${consulta.riesgo}` : ''}
+                  {consulta.itse?.caduca ? ` · caduca ${consulta.itse.caduca.slice(0, 10).split('-').reverse().join('/')}` : ''}
+                </div>
+                {consulta.sugerenciaCuis && <div className="text-[#9a3412]">Código sugerido: {consulta.sugerenciaCuis}. Tú decides.</div>}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className={formGroup}>
           <label className={cn(formLabel, formLabelRequired)}>Nombres / Razón social</label>

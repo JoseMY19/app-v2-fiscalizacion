@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '../../lib/config';
 import { generarUuid } from '../../lib/uuid';
+import { fetchAutenticado } from './fetch-autenticado';
 
 /**
  * HU-28 — reemplaza al gate simplificado "¿Quién eres?" (HU-24) por login
@@ -16,6 +17,9 @@ export interface UsuarioSesion {
   dni: string;
   nombres: string;
   rol: string;
+  rolNombre?: string;
+  debeCambiarContrasena?: boolean;
+  tieneFirmaRegistrada?: boolean;
 }
 
 interface Sesion {
@@ -70,17 +74,80 @@ export function obtenerFiscalizadorActivo(): string | null {
 }
 
 export async function login(dni: string, contrasena: string): Promise<UsuarioSesion> {
-  const respuesta = await fetch(`${API_BASE_URL}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ dni, contrasena }),
-  });
+  let respuesta: Response;
+  try {
+    respuesta = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-App': 'campo' },
+      body: JSON.stringify({ dni, contrasena }),
+    });
+  } catch {
+    throw new Error('No hay conexión con el servidor. Revisa tu señal o tu red e intenta de nuevo.');
+  }
   if (!respuesta.ok) {
-    throw new Error(
-      respuesta.status === 401 ? 'DNI o contraseña incorrectos.' : `El servidor respondió HTTP ${respuesta.status}.`,
-    );
+    let mensaje = 'No se pudo iniciar sesión. Revisa tu conexión.';
+    if (respuesta.status === 401) {
+      try {
+        mensaje = (await mensajeDeError(respuesta)) || 'DNI o contraseña incorrectos.';
+      } catch {
+        mensaje = 'DNI o contraseña incorrectos.';
+      }
+    } else if (respuesta.status >= 500) {
+      mensaje = 'El servidor tuvo un problema. Intenta de nuevo en unos minutos.';
+    } else {
+      mensaje = 'No se pudo comunicar con el servidor. Intenta de nuevo o avisa al administrador del sistema.';
+    }
+    throw new Error(mensaje);
   }
   const data: { accessToken: string; refreshToken: string; usuario: UsuarioSesion } = await respuesta.json();
   guardarSesion({ accessToken: data.accessToken, refreshToken: data.refreshToken, usuario: data.usuario });
+
+  // Descarga la firma registrada en segundo plano sin bloquear (fire and forget)
+  const { descargarFirmaPerfil } = await import('../evidencia/firma-perfil.repository');
+  void descargarFirmaPerfil(data.usuario.id);
+
   return data.usuario;
+}
+
+/** NestJS responde { message: string | string[] }. */
+async function mensajeDeError(respuesta: Response): Promise<string | null> {
+  const data = (await respuesta.json()) as { message?: string | string[] };
+  return Array.isArray(data.message) ? data.message[0] ?? null : data.message ?? null;
+}
+
+export async function cambiarContrasena(contrasenaActual: string, contrasenaNueva: string): Promise<void> {
+  const sesion = obtenerSesion();
+  if (!sesion) {
+    throw new Error('No hay sesión activa.');
+  }
+
+  // fetchAutenticado renueva el access token (dura 15 min) si ya venció: este
+  // paso ahora también se muestra al reabrir la app, horas después del login.
+  const respuesta = await fetchAutenticado(`${API_BASE_URL}/auth/cambiar-contrasena`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contrasenaActual, contrasenaNueva }),
+  });
+
+  if (!respuesta.ok) {
+    let mensaje = 'No se pudo cambiar la contraseña. Intenta de nuevo.';
+    if (respuesta.status === 400) {
+      try {
+        mensaje = (await mensajeDeError(respuesta)) || 'Contraseña actual incorrecta.';
+      } catch {
+        mensaje = 'Contraseña actual incorrecta.';
+      }
+    }
+    throw new Error(mensaje);
+  }
+
+  const data: { accessToken: string; refreshToken: string } = await respuesta.json();
+  const sesionActual = obtenerSesion();
+  if (sesionActual) {
+    guardarSesion({
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+      usuario: { ...sesionActual.usuario, debeCambiarContrasena: false },
+    });
+  }
 }

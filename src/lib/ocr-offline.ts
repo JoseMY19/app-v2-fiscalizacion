@@ -16,19 +16,20 @@ export type DatosOcrActa = Record<string, string>;
 
 interface AnclaCampo {
   campo: string;
-  /** Frases que pueden preceder al valor buscado, en orden de preferencia. */
   anclas: string[];
+  /** La ancla también aparece en un párrafo impreso anterior: usar la ÚLTIMA aparición. */
+  ultima?: boolean;
 }
 
 const ANCLAS_POR_TIPO: Record<string, AnclaCampo[]> = {
   FISCALIZACION: [
-    { campo: 'hechosVerificados', anclas: ['materia de fiscalizacion municipal', 'hechos verificados', 'hechos'] },
+    { campo: 'hechosVerificados', anclas: ['materia de fiscalizacion municipal', 'hechos verificados'] },
     { campo: 'observacionesAdministrado', anclas: ['siguientes observaciones', 'observaciones formuladas', 'observaciones'] },
   ],
   EXHORTACION: [
-    { campo: 'presuntaInfraccion', anclas: ['presunta infraccion administrativa', 'infraccion'] },
-    { campo: 'plazoSubsanacion', anclas: ['se le otorga un plazo de', 'plazo de'] },
-    { campo: 'observaciones', anclas: ['observaciones adicionales', 'observaciones'] },
+    { campo: 'presuntaInfraccion', anclas: ['presunta infraccion administrativa'], ultima: true },
+    { campo: 'plazoSubsanacion', anclas: ['se le otorga un plazo de'] },
+    { campo: 'observaciones', anclas: ['observaciones adicionales', 'observaciones a subsanar', 'observaciones'], ultima: true },
   ],
   MEDIDA_PROVISIONAL: [
     { campo: 'observacionesAdministrado', anclas: ['siguientes observaciones', 'formulado por el administrado', 'observaciones'] },
@@ -37,36 +38,81 @@ const ANCLAS_POR_TIPO: Record<string, AnclaCampo[]> = {
   ],
 };
 
-function normalizar(texto: string): string {
-  return texto
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '');
-}
+/** Texto impreso del formato que marca el fin de lo manuscrito (sin tildes, en minúsculas). */
+const FRASES_DE_CORTE = [
+  'al respecto y segun',
+  'de conformidad con',
+  'se emite la notificacion',
+  'siendo las',
+  'seguidamente',
+  'vencido dicho plazo',
+  'el cumplimiento de la presente',
+  'firmando el presente',
+  'inspector municipal',
+  'administrado/representante',
+  'se nego a',
+  'nota:',
+  'observaciones a subsanar',
+  'codigo infraccion',
+  'monto posible',
+  'medido provisional',
+  'razon social',
+  'giro/uso',
+  'por la infraccion con codigo',
+  'formulado por el administrado',
+  'dispuesta en',
+  'se le otorga',
+];
+
+const LARGO_MAXIMO_VALOR = 500;
 
 /**
- * Corte muy simple: busca el ancla y devuelve el resto de la línea/párrafo
- * siguiente (hasta el próximo salto de línea doble o 200 caracteres) —
- * no intenta segmentar por columnas ni tablas, el texto plano de
- * Tesseract no trae esa estructura.
+ * Minúsculas y sin tildes, pero SIEMPRE con el mismo largo que el original:
+ * así las posiciones del texto normalizado sirven para cortar el original.
  */
-function extraerTrasAncla(textoNormalizado: string, textoOriginal: string, ancla: string): string | null {
-  const idx = textoNormalizado.indexOf(ancla);
+function normalizar(texto: string): string {
+  let salida = '';
+  for (const c of texto) {
+    const base = c.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    salida += base.length === 1 ? base : (base[0] ?? ' ');
+  }
+  return salida;
+}
+
+/** Quita el ruido típico del OCR sobre las rayas de llenar (____, ....) y junta las líneas. */
+function limpiarValor(crudo: string): string {
+  return crudo
+    .replace(/[_|]{2,}/g, ' ')
+    .replace(/\.{3,}/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s:.\-,;/]+/, '')
+    .replace(/[\s_|]+$/, '')
+    .trim();
+}
+
+function extraerTrasAncla(textoNormalizado: string, textoOriginal: string, ancla: string, ultima = false): string | null {
+  const idx = ultima ? textoNormalizado.lastIndexOf(ancla) : textoNormalizado.indexOf(ancla);
   if (idx === -1) return null;
   const inicio = idx + ancla.length;
-  const resto = textoOriginal.slice(inicio, inicio + 200);
-  const corte = resto.search(/\n\s*\n/);
-  const extraido = (corte >= 0 ? resto.slice(0, corte) : resto).replace(/^[:\s]+/, '').trim();
-  return extraido.length >= 3 ? extraido : null;
+
+  let fin = Math.min(textoOriginal.length, inicio + LARGO_MAXIMO_VALOR);
+  for (const frase of FRASES_DE_CORTE) {
+    const pos = textoNormalizado.indexOf(frase, inicio);
+    if (pos !== -1 && pos < fin) fin = pos;
+  }
+
+  const valor = limpiarValor(textoOriginal.slice(inicio, fin));
+  // Solo rayas, signos o ruido: no hay nada escrito a mano.
+  return valor.replace(/[^\p{L}\p{N}]/gu, '').length >= 3 ? valor : null;
 }
 
 /**
  * El correlativo se imprime como "N° 00_____" — "00" es texto fijo de la
- * plantilla, lo que sigue es lo escrito a mano. Los dígitos son mucho más
- * confiables para OCR que la letra cursiva, vale la pena intentarlo.
+ * plantilla (el OCR lo lee a veces como "OO"), lo que sigue es lo escrito a
+ * mano. Los dígitos son mucho más confiables para OCR que la letra cursiva.
  */
 function extraerNumeroCorrelativo(textoOriginal: string): string | null {
-  const m = textoOriginal.match(/N[°ºo\.]{0,2}\s*00\s*[-\s]?(\d{2,})/i);
+  const m = textoOriginal.match(/N[°ºo.\s]{0,3}[0O]{2}\s*[-\s]?(\d{2,})/i);
   return m ? m[1] : null;
 }
 
@@ -98,9 +144,9 @@ export async function escanearActaSinConexion(tipoActa: string, imagen: File): P
 
     const anclas = ANCLAS_POR_TIPO[tipoActa] ?? [];
     const datos: DatosOcrActa = { ...extraerCamposEspeciales(tipoActa, text, textoNormalizado) };
-    for (const { campo, anclas: posiblesAnclas } of anclas) {
+    for (const { campo, anclas: posiblesAnclas, ultima } of anclas) {
       for (const ancla of posiblesAnclas) {
-        const valor = extraerTrasAncla(textoNormalizado, text, normalizar(ancla));
+        const valor = extraerTrasAncla(textoNormalizado, text, normalizar(ancla), ultima);
         if (valor) {
           datos[campo] = valor;
           break;
