@@ -129,7 +129,7 @@ export default function ActasAdicionalesScreen({ localId, onContinuar, onVolver 
             </div>
 
             {estaHabilitada && (
-              <div className="pt-[0.75rem] border-t border-solid border-t-border">
+              <div className="pt-[0.75rem] border-0 border-t border-solid border-t-border">
                 {tipo === 'MEDIDA_PROVISIONAL' && (
                   <FormActaMedidaProvisional localId={localId} onGuardada={() => marcarGuardada(tipo)} />
                 )}

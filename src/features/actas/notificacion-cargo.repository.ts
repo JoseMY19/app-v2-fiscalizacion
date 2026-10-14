@@ -1,4 +1,4 @@
-import { ModoNotificacion, type BaseCalculo } from '@pas-sjl/shared-types';
+import { ModoNotificacion, MotivoNoIdentificado, type BaseCalculo } from '@pas-sjl/shared-types';
 import { db, type NotificacionCargoLocal } from '../../lib/db';
 
 /**
@@ -37,9 +37,11 @@ export async function obtenerNotificacionCargo(intervencionLocalId: string): Pro
   return db.notificacionesCargo.get(intervencionLocalId);
 }
 
-/** HU-20: negativa + testigos/domicilio; HU-21: ¿se entregó en el acto? */
+/**
+ * HU-20: negativa a firmar; HU-21: ¿se entregó en el acto? (2026-10-09)
+ * seNegoIdentificarse ya no es editable aquí — se deriva del paso Administrado.
+ */
 export interface DatosEntregaNotificacion {
-  seNegoIdentificarse: boolean;
   seNegoFirmar: boolean;
   domicilioPuertas?: string;
   domicilioPisos?: string;
@@ -55,6 +57,8 @@ export interface DatosEntregaNotificacion {
  * HU-20/HU-21: SIEMPRE lee el registro completo de NotificacionCargo (ya
  * creado en HU-13) y lo fusiona — nunca lo reconstruye solo con los campos
  * de esta pantalla, porque perdería montoPasibleMulta/baseCalculo/etc.
+ * (2026-10-09) seNegoIdentificarse se deriva del paso Administrado: si
+ * administrado.identificado === false && administrado.motivoNoIdentificado === SE_NEGO.
  */
 export async function guardarEntregaNotificacionCargo(
   intervencionLocalId: string,
@@ -65,7 +69,10 @@ export async function guardarEntregaNotificacionCargo(
     throw new Error('No existe la Notificación de Cargo (HU-13) para registrar la entrega.');
   }
 
-  const hayNegativa = datos.seNegoIdentificarse || datos.seNegoFirmar;
+  // Leer administrado para derivar seNegoIdentificarse.
+  const administrado = await db.administrados.get(intervencionLocalId);
+  const seNegoIdentificarse = administrado?.identificado === false && administrado.motivoNoIdentificado === MotivoNoIdentificado.SE_NEGO;
+
   const modoNotificacion = datos.entregadaEnElActo
     ? datos.seNegoFirmar
       ? ModoNotificacion.PERSONAL_NEGATIVA
@@ -82,12 +89,13 @@ export async function guardarEntregaNotificacionCargo(
     receptorNombre: datos.entregadaEnElActo ? datos.receptorNombre?.trim() || undefined : undefined,
     receptorDocumento: datos.entregadaEnElActo ? datos.receptorDocumento?.trim() || undefined : undefined,
     receptorRelacion: datos.entregadaEnElActo ? datos.receptorRelacion?.trim() || undefined : undefined,
-    seNegoIdentificarse: datos.seNegoIdentificarse,
+    seNegoIdentificarse,
     seNegoFirmar: datos.seNegoFirmar,
-    domicilioPuertas: hayNegativa ? datos.domicilioPuertas?.trim() || undefined : undefined,
-    domicilioPisos: hayNegativa ? datos.domicilioPisos?.trim() || undefined : undefined,
-    domicilioNumeroSuministro: hayNegativa ? datos.domicilioNumeroSuministro?.trim() || undefined : undefined,
-    domicilioObservaciones: hayNegativa ? datos.domicilioObservaciones?.trim() || undefined : undefined,
+    // Características del domicilio solo si se negó a firmar/recibir.
+    domicilioPuertas: datos.seNegoFirmar ? datos.domicilioPuertas?.trim() || undefined : undefined,
+    domicilioPisos: datos.seNegoFirmar ? datos.domicilioPisos?.trim() || undefined : undefined,
+    domicilioNumeroSuministro: datos.seNegoFirmar ? datos.domicilioNumeroSuministro?.trim() || undefined : undefined,
+    domicilioObservaciones: datos.seNegoFirmar ? datos.domicilioObservaciones?.trim() || undefined : undefined,
   };
   await db.notificacionesCargo.put(registro);
 }

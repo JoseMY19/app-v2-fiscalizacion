@@ -8,10 +8,11 @@ import { listarFirmasPendientes, marcarFirmaSincronizada } from '../evidencia/fi
 import { asegurarEnCola, limpiarCola, registrarIntento } from './sync-cola.repository';
 import { emitirCambioSync } from './sync-eventos';
 import { purgarEvidenciaLocal } from './purgar-evidencia-local';
+import { reconciliarEscalasConServidor, reiniciarVerificacionCatalogo } from '../cuis/cuis-catalogo.repository';
 
 export type ResultadoSincronizacion = 'SINCRONIZADA' | 'CONFLICTO' | 'ERROR_TRANSITORIO';
 
-type ResultadoBundle = { ok: true } | { ok: false; conflicto: boolean; mensaje: string };
+type ResultadoBundle = { ok: true } | { ok: false; conflicto: boolean; mensaje: string; catalogoDesactualizado?: boolean };
 
 async function subirBundle(bundle: unknown): Promise<ResultadoBundle> {
   try {
@@ -23,7 +24,12 @@ async function subirBundle(bundle: unknown): Promise<ResultadoBundle> {
     if (respuesta.ok) return { ok: true };
     if (respuesta.status === 409) {
       const cuerpo = await respuesta.json().catch(() => null);
-      return { ok: false, conflicto: true, mensaje: cuerpo?.detalle ?? 'Correlativo duplicado.' };
+      return {
+        ok: false,
+        conflicto: true,
+        mensaje: cuerpo?.detalle ?? 'Correlativo duplicado.',
+        catalogoDesactualizado: cuerpo?.codigo === 'CATALOGO_CUIS_DESACTUALIZADO',
+      };
     }
     return { ok: false, conflicto: false, mensaje: `El servidor respondió HTTP ${respuesta.status}.` };
   } catch (e) {
@@ -83,6 +89,8 @@ async function subirEvidenciaPendiente(intervencionLocalId: string): Promise<boo
  */
 export async function sincronizarIntervencion(intervencionLocalId: string): Promise<ResultadoSincronizacion> {
   await asegurarEnCola(intervencionLocalId);
+  // Escalas elegidas con un catálogo viejo → su equivalente exacto en el catálogo actual.
+  await reconciliarEscalasConServidor();
 
   let bundle;
   try {
@@ -96,7 +104,17 @@ export async function sincronizarIntervencion(intervencionLocalId: string): Prom
     return 'ERROR_TRANSITORIO';
   }
 
-  const resultadoBundle = await subirBundle(bundle);
+  let resultadoBundle = await subirBundle(bundle);
+  if (!resultadoBundle.ok && resultadoBundle.catalogoDesactualizado) {
+    // El catálogo cambió en el servidor: se baja de nuevo, se reubican los códigos y se reintenta una vez.
+    reiniciarVerificacionCatalogo();
+    await reconciliarEscalasConServidor();
+    try {
+      resultadoBundle = await subirBundle(await armarBundle(intervencionLocalId));
+    } catch {
+      // Se queda con el rechazo original.
+    }
+  }
   if (!resultadoBundle.ok) {
     await registrarIntento(intervencionLocalId, { exito: false, detalleError: resultadoBundle.mensaje });
     if (resultadoBundle.conflicto) {

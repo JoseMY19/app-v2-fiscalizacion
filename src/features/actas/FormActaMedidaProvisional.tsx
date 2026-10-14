@@ -6,25 +6,41 @@ import { useVerificacionCorrelativo } from './useVerificacionCorrelativo';
 import AdjuntarFotoActa from '../evidencia/AdjuntarFotoActa';
 import EscanearActaOcr from './EscanearActaOcr';
 import type { DatosOcrActa } from '../../lib/ocr-offline';
+import type { TipoMedidaProvisional } from '../../lib/db';
 import { cn } from '../../lib/cn';
-import { btn, formGroup, formInput, formLabel, formLabelRequired, formTextarea, optionCard, optionCardContent, optionCardTitle, optionRadio, optionRadioDot, optionsGrid } from '../../lib/ui';
+import { btn, formGroup, formInput, formLabel, formHint, formLabelRequired, formTextarea, optionCard, optionCardContent, optionCardTitle, optionRadio, optionRadioDot, optionsGrid } from '../../lib/ui';
 
 /**
- * HU-14 — Acta de Medida Provisional. tipoMedida: CLAUSURA/PARALIZACION
- * (Retención y Decomiso van por ActaAdicional) más "Otros" (pedido
- * explícito de negocio, reunión 2026-09: hay más tipos reales — retiro
- * de animal, cancelación de espectáculo público, etc. — que no están en
- * una lista fija, así que "Otros" exige describir cuál en el campo
- * Descripción). Sin preselección automática al abrir la pantalla — el
+ * HU-14 — Acta de Medida Provisional. C2 (2026-09-30): catálogo ampliado
+ * con los tipos reales que describió el área (retención, decomiso,
+ * cancelación de evento, retiro de animal) más "Otros", que exige
+ * describir cuál en el campo Descripción. El acta aparte de Retención de
+ * Vehículos / Decomiso sigue yendo por ActaAdicional.
+ * C3: "¿Se ejecutó la medida en el acto?" es obligatoria (a veces se ordena
+ * en campo y se ejecuta después, p. ej. en vía coactiva). C4: si se
+ * ejecutó, se ofrece una foto opcional de la medida ejecutada. Sin preselección automática al abrir la pantalla — el
  * escaneo OCR puede sugerirlo (ver EscanearActaOcr), pero el
  * fiscalizador siempre confirma a mano antes de guardar.
  */
 
-const OPCIONES: { valor: 'CLAUSURA' | 'PARALIZACION' | 'OTROS'; etiqueta: string }[] = [
+const OPCIONES: { valor: TipoMedidaProvisional; etiqueta: string }[] = [
   { valor: 'CLAUSURA', etiqueta: 'Clausura' },
-  { valor: 'PARALIZACION', etiqueta: 'Paralización' },
+  { valor: 'PARALIZACION', etiqueta: 'Paralización de obra' },
+  { valor: 'RETENCION', etiqueta: 'Retención' },
+  { valor: 'DECOMISO', etiqueta: 'Decomiso' },
+  { valor: 'CANCELACION_EVENTO', etiqueta: 'Cancelación de evento' },
+  { valor: 'RETIRO_ANIMAL', etiqueta: 'Retiro de animal' },
   { valor: 'OTROS', etiqueta: 'Otros' },
 ];
+
+const OPCIONES_EJECUCION: { valor: boolean; etiqueta: string }[] = [
+  { valor: true, etiqueta: 'Sí' },
+  { valor: false, etiqueta: 'No' },
+];
+
+function esTipoMedida(valor: string | undefined): valor is TipoMedidaProvisional {
+  return OPCIONES.some((o) => o.valor === valor);
+}
 
 interface Props {
   localId: string;
@@ -33,11 +49,16 @@ interface Props {
 
 export default function FormActaMedidaProvisional({ localId, onGuardada }: Props) {
   const [numeroCorrelativo, setNumeroCorrelativo] = useState('');
-  const [tipoMedida, setTipoMedida] = useState<'CLAUSURA' | 'PARALIZACION' | 'OTROS' | null>(null);
+  const [tipoMedida, setTipoMedida] = useState<TipoMedidaProvisional | null>(null);
+  // Sin valor por defecto: el fiscalizador siempre responde Sí/No.
+  const [seEjecutoEnActo, setSeEjecutoEnActo] = useState<boolean | null>(null);
   const [descripcion, setDescripcion] = useState('');
   const [lugarEjecucion, setLugarEjecucion] = useState('');
   const [observacionesAdministrado, setObservacionesAdministrado] = useState('');
   const [guardando, setGuardando] = useState(false);
+  // Foto obligatoria del acta física (y de la medida, si se ejecutó en el acto).
+  const [tieneFotoActa, setTieneFotoActa] = useState(false);
+  const [tieneFotoEjecucion, setTieneFotoEjecucion] = useState(false);
 
   const estadoCorrelativo = useVerificacionCorrelativo(TipoActa.MEDIDA_PROVISIONAL, numeroCorrelativo, localId);
   const requiereDescripcion = tipoMedida === 'OTROS';
@@ -45,20 +66,21 @@ export default function FormActaMedidaProvisional({ localId, onGuardada }: Props
     numeroCorrelativo.trim().length > 0 &&
     estadoCorrelativo !== 'duplicado' &&
     tipoMedida !== null &&
-    (!requiereDescripcion || descripcion.trim().length > 0);
+    seEjecutoEnActo !== null &&
+    (!requiereDescripcion || descripcion.trim().length > 0) &&
+    tieneFotoActa &&
+    (seEjecutoEnActo !== true || tieneFotoEjecucion);
 
   function handleSugerenciasOcr(datos: DatosOcrActa) {
     if (datos.numeroCorrelativo) setNumeroCorrelativo(datos.numeroCorrelativo);
-    if (datos.tipoMedida === 'CLAUSURA' || datos.tipoMedida === 'PARALIZACION' || datos.tipoMedida === 'OTROS') {
-      setTipoMedida(datos.tipoMedida);
-    }
+    if (esTipoMedida(datos.tipoMedida)) setTipoMedida(datos.tipoMedida);
     if (datos.descripcion) setDescripcion(datos.descripcion);
     if (datos.lugarEjecucion) setLugarEjecucion(datos.lugarEjecucion);
     if (datos.observacionesAdministrado) setObservacionesAdministrado(datos.observacionesAdministrado);
   }
 
   async function handleGuardar() {
-    if (!puedeGuardar || !tipoMedida || guardando) return;
+    if (!puedeGuardar || !tipoMedida || seEjecutoEnActo === null || guardando) return;
     setGuardando(true);
     try {
       await guardarActaMedidaProvisional(localId, {
@@ -67,9 +89,11 @@ export default function FormActaMedidaProvisional({ localId, onGuardada }: Props
         descripcion,
         lugarEjecucion,
         observacionesAdministrado,
+        seEjecutoEnActo,
       });
       setNumeroCorrelativo('');
       setTipoMedida(null);
+      setSeEjecutoEnActo(null);
       setDescripcion('');
       setLugarEjecucion('');
       setObservacionesAdministrado('');
@@ -111,6 +135,34 @@ export default function FormActaMedidaProvisional({ localId, onGuardada }: Props
       </div>
 
       <div className={formGroup}>
+        <label className={cn(formLabel, formLabelRequired)}>¿Se ejecutó la medida en el acto?</label>
+        <div className={cn(optionsGrid, 'mb-0!')}>
+          {OPCIONES_EJECUCION.map((opcion) => {
+            const isSelected = seEjecutoEnActo === opcion.valor;
+            return (
+              <div
+                key={opcion.etiqueta}
+                className={cn(optionCard(isSelected), 'py-[0.625rem]! px-[0.875rem]!')}
+                onClick={() => setSeEjecutoEnActo(opcion.valor)}
+                role="button"
+                tabIndex={0}
+              >
+                <div className={optionRadio(isSelected)}>
+                  <div className={optionRadioDot(isSelected)} />
+                </div>
+                <div className={optionCardContent}>
+                  <div className={optionCardTitle}>{opcion.etiqueta}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p className={cn(formHint, 'mt-[0.375rem]! mb-0!')}>
+          Si no se ejecutó, se ejecutará después (p. ej. en vía coactiva).
+        </p>
+      </div>
+
+      <div className={formGroup}>
         <label className={cn(formLabel, requiereDescripcion && formLabelRequired)}>
           Descripción {requiereDescripcion ? '(indica qué tipo de medida es)' : '(opcional)'}
         </label>
@@ -148,9 +200,22 @@ export default function FormActaMedidaProvisional({ localId, onGuardada }: Props
       <AdjuntarFotoActa
         intervencionLocalId={localId}
         actaTipo="ACTA_MEDIDA_PROVISIONAL"
-        obligatoria={false}
-        label="Foto del acta física de medida provisional (opcional)"
+        obligatoria
+        label="Foto del acta física de medida provisional"
+        onCambio={setTieneFotoActa}
       />
+
+      {seEjecutoEnActo === true && (
+        <AdjuntarFotoActa
+          intervencionLocalId={localId}
+          actaTipo="MEDIDA_PROVISIONAL_EJECUCION"
+          obligatoria
+          label="Foto de la medida ejecutada"
+          onCambio={setTieneFotoEjecucion}
+          textoBotonCamara="Tomar foto de la medida"
+          altFoto="Medida provisional ejecutada"
+        />
+      )}
 
       <button
         type="button"

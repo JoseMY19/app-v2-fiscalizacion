@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { login } from './auth.repository';
+import CambiarContrasenaScreen from './CambiarContrasenaScreen';
 import logoDark from '../../assets/logo-sjl.webp';
 import cornerTop from '../../assets/corner-top.png';
 import cornerBottom from '../../assets/corner-bottom.png';
 import { cn } from '../../lib/cn';
 import { alerta, btn, formGroup, formInput, formLabel, formLabelRequired } from '../../lib/ui';
+import BotonInstalarApp from '../../components/BotonInstalarApp';
 
 const inputIcon =
   'absolute left-3.5 text-text-light pointer-events-none flex items-center justify-center transition-colors duration-150 group-focus-within:text-primary-600';
@@ -14,6 +16,7 @@ const loginCorner = 'absolute w-[145px] h-[145px] min-[480px]:w-[180px] min-[480
  * HU-28 — reemplaza a SeleccionarFiscalizadorScreen ("¿Quién eres?", HU-24).
  * Requiere red la primera vez (no hay sesión que restaurar todavía); una
  * vez logueado, la sesión sobrevive estar offline — ver App.tsx.
+ * Tras login, si debeCambiarContrasena es true, muestra la pantalla de cambio.
  */
 interface Props {
   onListo: () => void;
@@ -25,19 +28,28 @@ export default function LoginScreen({ onListo }: Props) {
   const [mostrarContrasena, setMostrarContrasena] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [debeCambiar, setDebeCambiar] = useState(false);
 
   async function handleSubmit(evento: React.FormEvent) {
     evento.preventDefault();
     setEnviando(true);
     setError(null);
     try {
-      await login(dni.trim(), contrasena);
-      onListo();
+      const usuario = await login(dni.trim(), contrasena);
+      if (usuario.debeCambiarContrasena) {
+        setDebeCambiar(true);
+      } else {
+        onListo();
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo iniciar sesión. Revisa tu conexión.');
     } finally {
       setEnviando(false);
     }
+  }
+
+  if (debeCambiar) {
+    return <CambiarContrasenaScreen onListo={onListo} />;
   }
 
   return (
@@ -186,7 +198,9 @@ export default function LoginScreen({ onListo }: Props) {
             </button>
           </form>
 
-          <div className="flex items-center justify-center gap-[0.35rem] text-[0.7rem] text-text-muted mt-5 pt-4 border-t border-solid border-border">
+          <BotonInstalarApp className="mt-3" />
+
+          <div className="flex items-center justify-center gap-[0.35rem] text-[0.7rem] text-text-muted mt-5 pt-4 border-0 border-t border-solid border-border">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />

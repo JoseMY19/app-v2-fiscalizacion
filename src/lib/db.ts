@@ -57,6 +57,7 @@ export interface AdministradoLocal {
   intervencionLocalId: string; // FK 1:1, misma semántica que Administrado.intervencionId en Prisma
   identificado: boolean;
   motivoNoIdentificado?: MotivoNoIdentificado;
+  motivoNoIdentificadoDetalle?: string; // obligatorio cuando el motivo es OTRO
   tipoDocumento?: string;
   numeroDocumento?: string;
   nombresRazonSocial?: string;
@@ -77,18 +78,30 @@ export interface FotoLocal {
 }
 
 /**
- * HU-18: firma capturada en el propio dispositivo del fiscalizador. La
- * firma del administrado NO se captura digitalmente aquí — es el celular
- * personal (BYOD) de otra persona, validez legal débil sin validación del
- * área legal; esa evidencia es una foto del acta física firmada (HU-17).
+ * HU-18: firma capturada en el propio dispositivo del fiscalizador. A partir del 2026-10-09,
+ * también se captura opcionalmente la firma del administrado — pero se MANTIENE además
+ * la foto del acta física firmada como respaldo legal obligatorio.
+ * Se puede tener dos firmas independientes por intervención: INSPECTOR y ADMINISTRADO.
  */
 export interface FirmaLocal {
   id?: number;
   intervencionLocalId: string;
-  rol: 'INSPECTOR';
+  rol: 'INSPECTOR' | 'ADMINISTRADO';
   blob: Blob;
   capturadaEn: string;
   sincronizada: boolean; // HU-24: igual que FotoLocal.sincronizada — evidencia sube independiente del bundle
+}
+
+/**
+ * Firma registrada del fiscalizador en su perfil — se reutiliza automáticamente
+ * en las siguientes intervenciones sin necesidad de refirmar. Permite workflows
+ * offline: si hay una local con pendienteSubir:false, no requiere red.
+ */
+export interface FirmaPerfilLocal {
+  usuarioId: string; // PK
+  blob: Blob;
+  actualizadaEn: string;
+  pendienteSubir: boolean; // si false, es una copia del servidor (sin red necesaria)
 }
 
 export interface ColaSincronizacion {
@@ -124,6 +137,12 @@ export interface IntervencionCuisLocal {
   cuisCodigoId: string;
   cuisEscalaMontoId?: string; // ausente solo si el código tiene una única escala
   seleccionadoEn: string;
+  // Foto de lo elegido, solo para poder reubicarlo si el catálogo del servidor se
+  // recarga con IDs nuevos (los IDs son los únicos datos "de verdad" de esta fila).
+  codigoNormativo?: string;
+  descripcionCodigo?: string | null;
+  escalaElegida?: 'L' | 'G' | 'MG';
+  condicionEscala?: string | null;
 }
 
 /**
@@ -191,7 +210,7 @@ export interface NotificacionCargoLocal {
   creadoEn: string;
 }
 
-/** HU-20: testigos cuando hay negativa. orden 1 y 2, siempre exactamente 2. */
+/** Testigos presenciales, orden 1 y 2 — ambos opcionales (C1, 2026-09-30): pueden ser 0, 1 o 2. */
 export interface TestigoLocal {
   id?: number;
   intervencionLocalId: string;
@@ -212,18 +231,33 @@ export interface ParametroUitCache {
 /**
  * HU-14: acta de medida provisional. NO es 1:1 — Prisma no le pone
  * @@unique([intervencionId]), una intervención puede tener más de una
- * (ej. clausura de un local y paralización de otra área). tipoMedida se
- * restringe a CLAUSURA/PARALIZACION: Retención y Decomiso van por
- * ActaAdicional (ver erd-sp1-decisiones.md §2.5 y la sesión de HU-14).
+ * (ej. clausura de un local y paralización de otra área). C2 (2026-09-30):
+ * catálogo ampliado (retención, decomiso, cancelación de evento, retiro de
+ * animal) — el acta de Retención de Vehículos / Decomiso como formato
+ * aparte sigue yendo por ActaAdicional (erd-sp1-decisiones.md §2.5).
+ * OTROS exige descripción.
  */
+export type TipoMedidaProvisional =
+  | 'CLAUSURA'
+  | 'PARALIZACION'
+  | 'RETENCION'
+  | 'DECOMISO'
+  | 'CANCELACION_EVENTO'
+  | 'RETIRO_ANIMAL'
+  | 'OTROS';
+
 export interface ActaMedidaProvisionalLocal {
   id?: number;
   intervencionLocalId: string;
   numeroCorrelativo: string;
-  tipoMedida: 'CLAUSURA' | 'PARALIZACION' | 'OTROS';
+  tipoMedida: TipoMedidaProvisional;
   descripcion?: string;
   lugarEjecucion?: string;
   observacionesAdministrado?: string;
+  // C3: ¿se ejecutó la medida en el acto? Ausente = no registrado (actas
+  // guardadas antes de este campo) — nunca se asume un valor. Campo no
+  // indexado, por eso no requiere subir la versión de Dexie.
+  seEjecutoEnActo?: boolean;
   creadoEn: string;
 }
 
@@ -266,6 +300,7 @@ class PasCampoDB extends Dexie {
   actasAdicionales!: Table<ActaAdicionalLocal, number>;
   firmas!: Table<FirmaLocal, number>;
   testigos!: Table<TestigoLocal, number>;
+  firmaPerfil!: Table<FirmaPerfilLocal, string>;
 
   constructor() {
     super('pas-campo-db');
@@ -418,6 +453,26 @@ class PasCampoDB extends Dexie {
       firmas: '++id, intervencionLocalId, sincronizada',
       testigos: '++id, intervencionLocalId',
       usuariosCache: null,
+    });
+    // version(10): firma registrada del fiscalizador en su perfil (reutilizable
+    // entre intervenciones). Tabla nueva para almacenar blob + estado de sincronización.
+    this.version(10).stores({
+      intervenciones: 'localId, serverId, estado, creadoEn',
+      fotos: '++id, intervencionLocalId, sincronizada',
+      colaSincronizacion: '++id, intervencionLocalId, estado',
+      cuisCache: 'id, codigo',
+      administrados: 'intervencionLocalId',
+      intervencionCuis: '++id, intervencionLocalId',
+      actasExhortacion: 'intervencionLocalId',
+      actasFiscalizacion: 'intervencionLocalId',
+      notificacionesCargo: 'intervencionLocalId',
+      uitCache: 'id, anio',
+      actasMedidaProvisional: '++id, intervencionLocalId',
+      actasValorizacionObra: '++id, intervencionLocalId',
+      actasAdicionales: '++id, intervencionLocalId',
+      firmas: '++id, intervencionLocalId, sincronizada',
+      testigos: '++id, intervencionLocalId',
+      firmaPerfil: 'usuarioId',
     });
   }
 }
