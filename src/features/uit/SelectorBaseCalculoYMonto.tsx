@@ -132,12 +132,12 @@ export default function SelectorBaseCalculoYMonto({ porcentajeUit, fecha, onResu
       )}
 
       {baseCalculo === BaseCalculo.UIT_FIJO && monto !== null && (
-        <div className="p-[1rem] bg-primary-50 border-[1.5px] border-solid border-primary-200 rounded-md flex items-center justify-between">
+        <div className="p-[1rem] bg-campo-50 border-[1.5px] border-solid border-campo-100 rounded-[14px] flex items-center justify-between">
           <div>
-            <div className="text-[0.75rem] uppercase tracking-[0.05em] text-primary-800 font-semibold">
+            <div className="text-[0.75rem] uppercase tracking-[0.05em] text-campo-700 font-semibold">
               Monto pasible de multa ({porcentajeUit}% UIT)
             </div>
-            <div className="text-[1.375rem] font-bold text-primary-900 mt-[0.125rem]">
+            <div className="text-[1.375rem] font-bold text-campo-900 mt-[0.125rem]">
               S/ {monto.toFixed(2)}
             </div>
           </div>
