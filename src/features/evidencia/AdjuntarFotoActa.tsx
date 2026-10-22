@@ -80,7 +80,7 @@ export default function AdjuntarFotoActa({
   return (
     <div className={cn(card(), 'mt-[1rem]!')}>
       <div className="flex items-center justify-between mb-[0.75rem]">
-        <span className="font-semibold text-[0.875rem] text-primary-900">
+        <span className="font-semibold text-[0.875rem] text-text-title">
           {label ?? 'Foto del acta física firmada'}
           {obligatoria && <span className="text-danger"> *</span>}
         </span>

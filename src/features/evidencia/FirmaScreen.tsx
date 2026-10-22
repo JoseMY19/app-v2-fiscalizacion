@@ -89,7 +89,7 @@ function Tarjeta({ titulo, estado, children }: { titulo: string; estado: ReactNo
   return (
     <div className={card()}>
       <div className="flex items-center justify-between gap-[0.5rem] mb-[0.75rem]">
-        <span className="font-semibold text-[0.9375rem] text-primary-900">{titulo}</span>
+        <span className="font-semibold text-[0.9375rem] text-text-title">{titulo}</span>
         {estado}
       </div>
       {children}
@@ -197,7 +197,7 @@ export default function FirmaScreen({ localId, onContinuar, onVolver }: Props) {
               type="checkbox"
               checked={reemplazarRegistrada}
               onChange={(e) => setReemplazarRegistrada(e.target.checked)}
-              className="w-[18px] h-[18px] accent-primary-600"
+              className="w-[18px] h-[18px] accent-campo-700"
             />
             <span className={optionCardTitle}>Usar esta firma como mi firma registrada</span>
           </label>
@@ -217,7 +217,7 @@ export default function FirmaScreen({ localId, onContinuar, onVolver }: Props) {
             type="checkbox"
             checked={seNegoFirmar}
             onChange={(e) => cambiarNegativa(e.target.checked)}
-            className="w-[18px] h-[18px] accent-primary-600"
+            className="w-[18px] h-[18px] accent-campo-700"
           />
           <span className={optionCardTitle}>El administrado se negó a firmar</span>
         </label>
