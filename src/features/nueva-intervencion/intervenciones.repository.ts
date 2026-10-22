@@ -10,7 +10,14 @@ import { generarUuid } from '../../lib/uuid';
  * bloquear el avance si fallan ambas.
  */
 export type UbicacionInicial =
-  | { origenUbicacion: OrigenUbicacion.GPS_AUTOMATICO; latitud: number; longitud: number; gpsPrecisionM: number }
+  | {
+      origenUbicacion: OrigenUbicacion.GPS_AUTOMATICO;
+      latitud: number;
+      longitud: number;
+      gpsPrecisionM: number;
+      // Referencia legible para el expediente; las coordenadas siguen siendo la ubicación oficial.
+      direccionAproximada?: string;
+    }
   | { origenUbicacion: OrigenUbicacion.DIRECCION_MANUAL; direccionAproximada: string };
 
 export async function crearIntervencionConUbicacion(ubicacion: UbicacionInicial): Promise<string> {
@@ -31,7 +38,12 @@ export async function crearIntervencionConUbicacion(ubicacion: UbicacionInicial)
     actualizadoEn: ahora,
     origenUbicacion: ubicacion.origenUbicacion,
     ...(ubicacion.origenUbicacion === OrigenUbicacion.GPS_AUTOMATICO
-      ? { latitud: ubicacion.latitud, longitud: ubicacion.longitud, gpsPrecisionM: ubicacion.gpsPrecisionM }
+      ? {
+          latitud: ubicacion.latitud,
+          longitud: ubicacion.longitud,
+          gpsPrecisionM: ubicacion.gpsPrecisionM,
+          direccionAproximada: ubicacion.direccionAproximada,
+        }
       : { direccionAproximada: ubicacion.direccionAproximada }),
   };
 
@@ -89,4 +101,40 @@ export async function finalizarIntervencion(localId: string, tipoActuacion: Tipo
     estado: EstadoIntervencion.PENDIENTE_SYNC,
     actualizadoEn: new Date().toISOString(),
   });
+}
+
+/** Resumen de la intervención más reciente, para la fila "Última intervención" del inicio. */
+export interface UltimaIntervencion {
+  localId: string;
+  identificado: boolean;
+  camino: TipoActuacion;
+}
+
+/**
+ * La intervención cerrada más reciente del fiscalizador activo, leída de
+ * Dexie para que el inicio la muestre aunque se recargue la app. Las
+ * BORRADOR (wizard sin terminar) no cuentan. El registro de Intervencion
+ * se conserva tras sincronizar (solo se purga la evidencia), así que
+ * también aparecen las ya enviadas.
+ */
+export async function obtenerUltimaIntervencion(): Promise<UltimaIntervencion | null> {
+  const fiscalizadorId = obtenerFiscalizadorActivo();
+  const ultima = await db.intervenciones
+    .orderBy('creadoEn')
+    .reverse()
+    .filter(
+      (i) =>
+        i.estado !== EstadoIntervencion.BORRADOR &&
+        i.tipoActuacion !== undefined &&
+        (!i.fiscalizadorId || i.fiscalizadorId === fiscalizadorId),
+    )
+    .first();
+  if (!ultima?.tipoActuacion) return null;
+
+  const administrado = await db.administrados.get(ultima.localId);
+  return {
+    localId: ultima.localId,
+    identificado: administrado?.identificado ?? false,
+    camino: ultima.tipoActuacion,
+  };
 }

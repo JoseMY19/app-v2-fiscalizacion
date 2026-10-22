@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { TipoActuacion } from '@pas-sjl/shared-types';
 import NuevaIntervencionWizard from './features/nueva-intervencion/NuevaIntervencionWizard';
+import { obtenerUltimaIntervencion, type UltimaIntervencion } from './features/nueva-intervencion/intervenciones.repository';
 import LoginScreen from './features/auth/LoginScreen';
 import CambiarContrasenaScreen from './features/auth/CambiarContrasenaScreen';
 import { cerrarSesion, obtenerFiscalizadorActivo, obtenerSesion } from './features/auth/auth.repository';
@@ -8,31 +9,30 @@ import { contarPendientes } from './features/sincronizacion/sync-cola.repository
 import { escanearYSincronizar, iniciarMotorSincronizacion } from './features/sincronizacion/motor-sincronizacion';
 import { suscribirseACambiosSync, suscribirseASesionExpirada } from './features/sincronizacion/sync-eventos';
 import MisTramitesScreen from './features/mis-tramites/MisTramitesScreen';
+import PerfilScreen from './features/perfil/PerfilScreen';
 import { socket } from './lib/socket';
 
 import AppHeader from './components/AppHeader';
 import BottomNavBar from './components/BottomNavBar';
 import { cn } from './lib/cn';
-import { alerta, appContainer, badge, btn, card, kpiChip } from './lib/ui';
+import { iniciales } from './lib/iniciales';
+import { alerta, appContainer, badge, brilloHero, btn, chipHero, iconoTarjeta, kpiChip, tarjetaHero, tarjetaSuave } from './lib/ui';
 
-// Botón outline con texto/borde de peligro fijos (antes inline style, que
-// ganaba también sobre el hover).
-const btnCerrarSesion =
-  'inline-flex items-center justify-center gap-2 font-semibold rounded-md border border-solid cursor-pointer select-none w-full ' +
-  'px-[1.125rem] py-2.5 text-[0.9375rem] min-h-11 bg-white text-danger border-danger-border not-disabled:hover:bg-primary-50 ' +
-  'transition-[background-color,border-color,box-shadow,transform] duration-150 not-disabled:active:scale-[0.98]';
+const brilloFondo = 'absolute rounded-full blur-3xl';
 
-const kpiCardBase =
-  'bg-white border border-solid rounded-lg pt-3.5 px-3.5 pb-3 flex flex-col justify-between shadow-xs transition-all duration-150 text-left cursor-pointer relative z-[2] min-h-[98px] hover:border-primary-300 hover:shadow-sm active:scale-[0.97]';
-const kpiTop = 'flex items-center justify-between mb-2.5';
-const kpiIcon = 'w-[34px] h-[34px] rounded-md flex items-center justify-center shrink-0';
-const kpiBody = 'flex flex-col gap-0.5';
-const kpiLabel = 'text-[0.8125rem] font-bold text-text-title leading-tight';
-const kpiDetail = 'text-xs text-text-muted leading-[1.2]';
+
+const kpiCardBase = cn(
+  tarjetaSuave,
+  'flex items-center gap-3.5 px-4 py-3.5 w-full text-left cursor-pointer transition-[box-shadow,transform] duration-150 ' +
+    'hover:shadow-[0_10px_24px_-6px_rgba(14,26,59,0.16),0_2px_4px_rgba(14,26,59,0.06)] active:scale-[0.98]',
+);
+const kpiBody = 'flex-1 min-w-0 flex flex-col gap-0.5';
+const kpiLabel = 'text-[0.8125rem] font-medium text-text-muted leading-tight';
+const kpiDetail = 'text-[1.0625rem] font-bold text-text-title leading-tight';
 
 const menuItem =
   'flex items-center gap-3 px-4 py-3.5 bg-transparent border-0 border-b border-solid border-border last:border-b-0 w-full text-left text-inherit transition-colors duration-150';
-const menuItemIcon = 'w-9 h-9 rounded-md flex items-center justify-center shrink-0';
+const menuItemIcon = cn(iconoTarjeta, 'bg-campo-50 text-campo-700');
 const menuItemContent = 'flex-1 min-w-0';
 const menuItemTitle = 'text-sm font-bold text-text-title';
 const menuItemDesc = 'text-xs text-text-muted whitespace-nowrap overflow-hidden text-ellipsis';
@@ -50,20 +50,14 @@ const TITULO_CAMINO: Record<string, string> = {
   [TipoActuacion.INICIA_PAS]: 'Inicia PAS',
 };
 
-// Feedback mínimo del criterio de HU-05 ("se marca visualmente ... como
-// Pendiente de saneamiento") al volver al inicio tras finalizar el alta.
-// El resumen completo con todo lo capturado es HU-19 (dentro del wizard).
-interface UltimaIntervencion {
-  localId: string;
-  identificado: boolean;
-  cerrada: boolean;
-  camino: TipoActuacion;
-}
+const fechaHoy = new Intl.DateTimeFormat('es-PE', { weekday: 'long', day: 'numeric', month: 'long' });
 
 export default function App() {
   const [vista, setVista] = useState<Vista>({ nombre: 'inicio' });
   const [pendientes, setPendientes] = useState<number>(0);
   const [sincronizando, setSincronizando] = useState(false);
+  // Feedback mínimo del criterio de HU-05 ("se marca visualmente ... como
+  // Pendiente de saneamiento"). Se lee de Dexie para que sobreviva recargas.
   const [ultimaIntervencion, setUltimaIntervencion] = useState<UltimaIntervencion | null>(null);
   // HU-28: "¿hubo login alguna vez en este dispositivo?" — null mientras se
   // verifica, luego true/false. Deliberadamente NO pregunta si el access
@@ -105,6 +99,7 @@ export default function App() {
     if (!tieneFiscalizador) return;
     iniciarMotorSincronizacion();
     contarPendientes().then(setPendientes);
+    obtenerUltimaIntervencion().then(setUltimaIntervencion);
     // Canal adicional de aviso en vivo (RealtimeGateway) — jamás el
     // transporte de sincronización, que sigue siendo el motor de arriba.
     socket.connect();
@@ -168,13 +163,15 @@ export default function App() {
     );
   }
 
+  const usuarioSesion = obtenerSesion()?.usuario ?? null;
+
   const contenido =
     vista.nombre === 'nueva-intervencion' ? (
       <NuevaIntervencionWizard
         modoEdicion={corrigiendoLocalId !== null}
         localIdInicial={corrigiendoLocalId ?? undefined}
-        onFinalizar={({ localId, identificado, cerrada, camino }) => {
-          setUltimaIntervencion({ localId, identificado, cerrada, camino });
+        onFinalizar={() => {
+          obtenerUltimaIntervencion().then(setUltimaIntervencion);
           setCorrigiendoLocalId(null);
           setVista({ nombre: 'inicio' });
         }}
@@ -186,80 +183,64 @@ export default function App() {
     ) : vista.nombre === 'mis-tramites' ? (
       <MisTramitesScreen onVolver={() => setVista({ nombre: 'inicio' })} />
     ) : vista.nombre === 'perfil' ? (
-      <div className={appContainer}>
-        <div className={cn(card(), 'p-6! text-center')}>
-          <div className="w-14 h-14 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center mx-auto mb-3.5">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </div>
-          <h2 className="text-lg mb-[0.2rem]">Inspector Municipal</h2>
-          <p className="text-text-muted text-[0.8125rem] mb-5">
-            Subgerencia de Operaciones de Fiscalización
-          </p>
-
-          <div className="text-left bg-bg-subtle rounded-md px-4 py-3.5 mb-5">
-            <div className="flex justify-between mb-2 text-[0.8125rem]">
-              <span className="text-text-muted">DNI / ID:</span>
-              <span className="font-bold">{fiscalizadorDni ?? 'Sin asignar'}</span>
-            </div>
-            <div className="flex justify-between mb-2 text-[0.8125rem]">
-              <span className="text-text-muted">Jurisdicción:</span>
-              <span className="font-semibold">San Juan de Lurigancho</span>
-            </div>
-            <div className="flex justify-between text-[0.8125rem]">
-              <span className="text-text-muted">Estado:</span>
-              <span className="text-success font-bold">Activo en campo</span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            className={btnCerrarSesion}
-            onClick={() => {
-              localStorage.removeItem('pas_sjl_fiscalizador_activo');
-              setTieneFiscalizador(false);
-            }}
-          >
-            Cerrar sesión en este dispositivo
-          </button>
-        </div>
-      </div>
+      <PerfilScreen
+        usuario={usuarioSesion}
+        pendientes={pendientes}
+        onCerrarSesion={() => {
+          cerrarSesion();
+          setTieneFiscalizador(false);
+          setFiscalizadorDni(null);
+          setVista({ nombre: 'inicio' });
+        }}
+      />
     ) : (
       <div className={appContainer}>
         {/* Identidad del Fiscalizador */}
-        <div className="flex items-center gap-3 bg-white border border-solid border-border rounded-lg px-4 py-3 mb-4 shadow-xs relative z-[2]">
-          <div className="w-[38px] h-[38px] rounded-md bg-primary-50 text-primary-600 flex items-center justify-center shrink-0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
+        <div className={cn(tarjetaSuave, 'flex items-center gap-3.5 px-4 py-3.5 mb-4')}>
+          <div className={cn(iconoTarjeta, 'rounded-full bg-[linear-gradient(135deg,var(--color-campo-700),var(--color-campo-900))] text-white text-sm font-bold tracking-[0.02em]')}>
+            {usuarioSesion?.nombres ? (
+              iniciales(usuarioSesion.nombres)
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            )}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[0.7rem] font-semibold text-text-muted uppercase tracking-[0.04em] mb-[0.1rem]">Fiscalizador de Campo</div>
+            <div className="text-xs font-medium text-text-muted mb-[0.1rem] first-letter:uppercase">{fechaHoy.format(new Date())}</div>
             <div className="text-[0.9375rem] font-bold text-text-title whitespace-nowrap overflow-hidden text-ellipsis">
-              {fiscalizadorDni ? (fiscalizadorDni.includes('-') || fiscalizadorDni.length > 12 ? `ID #${fiscalizadorDni.slice(0, 8).toUpperCase()}` : `DNI ${fiscalizadorDni}`) : 'En servicio'}
+              {usuarioSesion?.nombres
+                ? `Hola, ${usuarioSesion.nombres}`
+                : fiscalizadorDni ? (fiscalizadorDni.includes('-') || fiscalizadorDni.length > 12 ? `ID #${fiscalizadorDni.slice(0, 8).toUpperCase()}` : `DNI ${fiscalizadorDni}`) : 'En servicio'}
+            </div>
+            <div className="text-xs text-text-muted whitespace-nowrap overflow-hidden text-ellipsis">
+              Fiscalizador de Campo{usuarioSesion?.dni ? ` · DNI ${usuarioSesion.dni}` : ''}
             </div>
           </div>
-          <div className="text-[0.6875rem] font-bold text-primary-700 bg-primary-50 border border-solid border-primary-100 px-2 py-[0.2rem] rounded-pill tracking-[0.05em] shrink-0">MDSJL</div>
+          <div className="text-[0.6875rem] font-bold text-campo-700 bg-campo-50 border border-solid border-campo-100 px-2 py-[0.2rem] rounded-pill tracking-[0.05em] shrink-0">MDSJL</div>
         </div>
 
         {/* Tarjeta Hero Principal: Nueva Intervención */}
-        <div className="bg-[linear-gradient(135deg,#102a71_0%,#1d3a8f_50%,#2851b3_100%)] rounded-xl px-5 py-[1.35rem] text-white shadow-[0_8px_24px_-4px_rgba(29,58,143,0.35)] mb-5 relative overflow-hidden border border-solid border-white/15 after:content-[''] after:absolute after:-top-[30px] after:-right-[30px] after:w-[130px] after:h-[130px] after:rounded-full after:bg-[radial-gradient(circle,rgba(255,255,255,0.15)_0%,rgba(255,255,255,0)_70%)] after:pointer-events-none">
-          <div className="inline-flex items-center gap-[0.35rem] px-[0.65rem] py-1 rounded-pill bg-white/20 text-white text-[0.725rem] font-bold uppercase tracking-[0.05em] mb-2.5">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="12" r="10" />
-            </svg>
-            <span>Operaciones de Campo</span>
+        <div className={cn(tarjetaHero, 'px-5 pt-[1.15rem] pb-6 mb-5')}>
+          {/* Brillos difusos de fondo */}
+          <div className="absolute inset-0 -z-10 pointer-events-none" aria-hidden="true">
+            <div className={cn(brilloHero, '-top-10 -right-8 w-44 h-44 bg-sjl-amarillo/45')} />
+            <div className={cn(brilloHero, '-bottom-14 left-1/3 w-48 h-40 bg-sjl-celeste/40')} />
+            <div className={cn(brilloHero, '-top-12 -left-10 w-36 h-36 bg-sjl-rosa/35')} />
           </div>
-          <h2 className="text-xl font-extrabold text-white mb-[0.35rem] tracking-[-0.02em]">Nueva Fiscalización</h2>
-          <p className="text-[0.8125rem] text-white/90 mb-[1.125rem] leading-[1.4]">
+
+          <div className={cn(chipHero, 'mb-3')}>
+            <span className="w-2 h-2 rounded-full bg-white" aria-hidden="true" />
+            <span className="uppercase tracking-[0.06em]">Operaciones de Campo</span>
+          </div>
+          <h2 className="font-titulo text-[1.875rem] font-black text-white leading-none tracking-[-0.01em] mb-2">Nueva Fiscalización</h2>
+          <p className="text-[0.8125rem] text-white/85 mb-4 leading-[1.4]">
             Registro de actas, evidencias y firma digital en campo
           </p>
           <button
             type="button"
-            className="bg-white text-primary-700 font-bold text-[0.9375rem] px-5 py-[0.8125rem] rounded-lg flex items-center justify-center gap-2 border-none cursor-pointer shadow-[0_4px_14px_rgba(16,42,113,0.25)] transition-[transform,box-shadow] duration-150 w-full active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-pill bg-white/15 border border-solid border-white/25 backdrop-blur-sm text-white font-bold text-[0.9375rem] cursor-pointer transition-[background-color,transform] duration-150 hover:bg-white/25 active:scale-[0.98]"
             onClick={() => setVista({ nombre: 'nueva-intervencion' })}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -267,6 +248,9 @@ export default function App() {
             </svg>
             <span>Iniciar Intervención</span>
           </button>
+
+          {/* Franja multicolor SJL en el borde inferior */}
+          <div className="absolute left-0 right-0 bottom-0 h-1.5 bg-franja-sjl" aria-hidden="true" />
         </div>
 
         {/* Indicador de sincronización */}
@@ -274,28 +258,23 @@ export default function App() {
           {/* KPI 1: Sincronización */}
           <button
             type="button"
-            className={cn(kpiCardBase, 'border-border')}
+            className={kpiCardBase}
             onClick={handleSincronizarAhora}
             disabled={sincronizando}
             title="Tocar para forzar sincronización"
           >
-            <div className={kpiTop}>
-              <div className={cn(kpiIcon, 'bg-primary-50 text-primary-700')}>
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  className={sincronizando ? 'animate-spin' : undefined}
-                >
-                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
-                </svg>
-              </div>
-              <span className={kpiChip(pendientes > 0 ? 'warning' : 'success')}>
-                {pendientes > 0 ? `${pendientes} pend.` : 'Al día'}
-              </span>
+            <div className={cn(iconoTarjeta, 'bg-campo-50 text-campo-700')}>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                className={sincronizando ? 'animate-spin' : undefined}
+              >
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+              </svg>
             </div>
             <div className={kpiBody}>
               <div className={kpiLabel}>Sincronización</div>
@@ -303,20 +282,23 @@ export default function App() {
                 {sincronizando ? 'Sincronizando…' : pendientes > 0 ? 'Tocar para enviar' : 'Expedientes al día'}
               </div>
             </div>
+            <span className={kpiChip(pendientes > 0 ? 'warning' : 'success')}>
+              {pendientes > 0 ? `${pendientes} pend.` : 'Al día'}
+            </span>
           </button>
 
         </div>
 
         {/* Menú de Gestión Móvil */}
-        <div className="bg-bg-card border border-solid border-border rounded-xl overflow-hidden shadow-sm mb-5">
+        <div className={cn(tarjetaSuave, 'overflow-hidden mb-5')}>
           <div className="text-[0.725rem] font-bold uppercase tracking-[0.06em] text-text-muted pt-3.5 px-4 pb-[0.4rem]">Gestión y Expedientes</div>
 
           <button
             type="button"
-            className={cn(menuItem, 'cursor-pointer active:bg-primary-50')}
+            className={cn(menuItem, 'cursor-pointer active:bg-campo-50')}
             onClick={() => setVista({ nombre: 'mis-tramites' })}
           >
-            <div className={cn(menuItemIcon, 'bg-primary-50 text-primary-700')}>
+            <div className={menuItemIcon}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
@@ -336,36 +318,41 @@ export default function App() {
             </div>
           </button>
 
-          {ultimaIntervencion && (
-            <div className={cn(menuItem, 'cursor-default active:bg-primary-50')}>
-              <div className={cn(menuItemIcon, 'bg-success-bg text-success')}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M20 6L9 17l-5-5" />
-                </svg>
-              </div>
-              <div className={menuItemContent}>
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className={cn(menuItemTitle, 'm-0')}>Última intervención</span>
+          <div className={cn(menuItem, 'cursor-default')}>
+            <div className={cn(iconoTarjeta, ultimaIntervencion ? 'bg-success-bg text-success' : 'bg-bg-subtle text-text-light')}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+            </div>
+            <div className={menuItemContent}>
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className={cn(menuItemTitle, 'm-0')}>Última intervención</span>
+                {ultimaIntervencion && (
                   <span className={cn(badge('neutral'), 'text-[0.6875rem]')}>
                     #{ultimaIntervencion.localId.slice(0, 6)}
                   </span>
-                </div>
-                <div className={menuItemDesc}>
-                  {TITULO_CAMINO[ultimaIntervencion.camino] ?? ultimaIntervencion.camino} · {ultimaIntervencion.identificado ? 'Identificado' : 'Saneamiento'}
-                </div>
+                )}
+              </div>
+              <div className="text-xs text-text-muted leading-snug">
+                {ultimaIntervencion
+                  ? `${TITULO_CAMINO[ultimaIntervencion.camino] ?? ultimaIntervencion.camino} · ${ultimaIntervencion.identificado ? 'Identificado' : 'Saneamiento'}`
+                  : 'Aún no registras intervenciones'}
               </div>
             </div>
-          )}
+          </div>
+
         </div>
       </div>
     );
 
   return (
     <div className="flex flex-col min-h-screen bg-bg-app relative isolate">
-      {/* Esquinas decorativas de fondo MDSJL (Fluido y sin lag) */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[58px] left-0 w-[150px] h-[150px] min-[480px]:w-[185px] min-[480px]:h-[185px] bg-[url('/assets/corner-top.png')] bg-no-repeat bg-contain bg-top-left opacity-70 select-none pointer-events-none" />
-        <div className="absolute bottom-[62px] right-0 w-[150px] h-[150px] min-[480px]:w-[185px] min-[480px]:h-[185px] bg-[url('/assets/corner-bottom.png')] bg-no-repeat bg-contain bg-bottom-right opacity-70 select-none pointer-events-none" />
+      {/* Fondo: velo magenta muy suave arriba y brillos difusos de la paleta SJL */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,var(--color-campo-50)_0%,var(--color-bg-app)_40%)]" />
+        <div className={cn(brilloFondo, '-top-16 -right-20 w-72 h-72 bg-campo-200/50')} />
+        <div className={cn(brilloFondo, 'top-1/2 -left-28 w-72 h-72 bg-sjl-celeste/10')} />
+        <div className={cn(brilloFondo, '-bottom-10 -right-24 w-80 h-80 bg-sjl-amarillo/15')} />
       </div>
 
       <AppHeader

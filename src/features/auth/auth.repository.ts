@@ -11,6 +11,7 @@ import { fetchAutenticado } from './fetch-autenticado';
  */
 const CLAVE_SESION = 'pas-campo:sesion';
 const CLAVE_DEVICE_ID = 'pas-campo:deviceId';
+const CLAVE_DNI_RECORDADO = 'pas-campo:dniRecordado';
 
 export interface UsuarioSesion {
   id: string;
@@ -35,6 +36,16 @@ export function obtenerDeviceId(): string {
     localStorage.setItem(CLAVE_DEVICE_ID, deviceId);
   }
   return deviceId;
+}
+
+/** "Recordar mi DNI" del login: solo el DNI, nunca la contraseña. */
+export function obtenerDniRecordado(): string {
+  return localStorage.getItem(CLAVE_DNI_RECORDADO) ?? '';
+}
+
+export function recordarDni(dni: string | null): void {
+  if (dni) localStorage.setItem(CLAVE_DNI_RECORDADO, dni);
+  else localStorage.removeItem(CLAVE_DNI_RECORDADO);
 }
 
 export function obtenerSesion(): Sesion | null {
