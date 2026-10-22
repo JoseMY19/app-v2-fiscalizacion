@@ -1,3 +1,6 @@
+import { cn } from '../lib/cn';
+import { tarjetaSuave } from '../lib/ui';
+
 interface Props {
   pasoActual: number;
   totalPasos: number;
@@ -18,13 +21,13 @@ export default function WizardHeader({
   const porcentaje = Math.min(100, Math.max(0, Math.round((pasoActual / totalPasos) * 100)));
 
   return (
-    <div className="bg-white border border-solid border-border rounded-lg px-[1.125rem] py-4 mb-4 shadow-xs relative z-[2]">
-      {/* Fila superior: Botón Volver + Indicador de Paso + Porcentaje */}
-      <div className="flex items-center justify-between gap-3 mb-3">
+    <div className={cn(tarjetaSuave, 'px-4 py-4 mb-4')}>
+      {/* Fila superior: Botón Volver + Indicador de Paso */}
+      <div className="flex items-center justify-between gap-3 mb-3.5">
         {onVolver ? (
           <button
             type="button"
-            className="inline-flex items-center gap-[0.35rem] bg-bg-subtle border border-solid border-border rounded-pill px-3 py-[0.35rem] text-[0.8125rem] font-semibold text-text-body cursor-pointer transition-all duration-150 not-disabled:hover:bg-primary-50 not-disabled:hover:border-primary-200 not-disabled:hover:text-primary-700 not-disabled:active:scale-[0.96] disabled:opacity-40 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-1.5 bg-campo-50 border border-solid border-campo-100 rounded-pill pl-2.5 pr-3.5 py-1.5 text-[0.8125rem] font-semibold text-campo-700 cursor-pointer transition-all duration-150 not-disabled:hover:bg-campo-100 not-disabled:active:scale-[0.96] disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={onVolver}
             disabled={deshabilitarVolver}
             aria-label="Volver al paso anterior"
@@ -39,24 +42,23 @@ export default function WizardHeader({
           <div />
         )}
 
-        <div className="flex items-center gap-[0.4rem]">
-          <span className="text-xs font-bold text-primary-700 bg-primary-50 border border-solid border-primary-100 px-[0.6rem] py-1 rounded-pill tracking-[0.02em]">
-            Paso {pasoActual} de {totalPasos}
-          </span>
-        </div>
+        <span className="text-xs font-semibold text-text-muted">
+          Paso <span className="font-bold text-campo-700">{pasoActual}</span> de {totalPasos}
+        </span>
       </div>
 
-      {/* Barra de progreso con pista suave y relleno degradado */}
-      <div className="w-full h-1.5 bg-border rounded-pill overflow-hidden mb-3.5">
+      {/* Barra de progreso con la franja multicolor SJL */}
+      <div className="w-full h-2 bg-bg-subtle rounded-pill overflow-hidden mb-4">
+        {/* backgroundSize estira la franja al ancho total: el avance "descubre" los colores en vez de comprimirlos */}
         <div
-          className="h-full bg-linear-to-r from-primary-600 to-primary-500 rounded-pill transition-[width] duration-300"
-          style={{ width: `${porcentaje}%` }}
+          className="h-full bg-franja-sjl rounded-pill transition-[width] duration-300"
+          style={{ width: `${porcentaje}%`, backgroundSize: `${porcentaje > 0 ? 10000 / porcentaje : 100}% 100%` }}
         />
       </div>
 
       {/* Título del Paso y Descripción */}
-      <div className="flex flex-col gap-[0.2rem]">
-        <h1 className="text-lg font-extrabold text-primary-900 leading-tight m-0 tracking-[-0.01em]">{titulo}</h1>
+      <div className="flex flex-col gap-1">
+        <h1 className="font-titulo text-[1.375rem] font-black text-text-title leading-tight m-0">{titulo}</h1>
         {subtitulo && <p className="text-[0.8125rem] text-text-muted m-0 leading-[1.35]">{subtitulo}</p>}
       </div>
     </div>

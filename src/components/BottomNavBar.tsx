@@ -12,14 +12,23 @@ interface Props {
 
 function navItem(activo: boolean): string {
   return cn(
-    'flex flex-col items-center justify-center flex-1 bg-transparent border-none cursor-pointer py-[0.35rem] px-0 gap-[0.2rem] transition-colors duration-150 active:scale-95',
-    activo ? 'text-primary-600' : 'text-text-muted',
+    'group flex flex-col items-center justify-center flex-1 h-full bg-transparent border-none cursor-pointer px-0 gap-1 transition-colors duration-200 active:scale-95',
+    activo ? 'text-campo-700' : 'text-text-muted hover:text-campo-600',
   );
 }
 
-const iconWrapper = 'relative flex items-center justify-center';
-const navLabel = 'text-[0.6875rem] font-semibold tracking-[0.01em]';
-const navDot = 'absolute -top-0.5 -right-[3px] w-[7px] h-[7px] rounded-full border-[1.5px] border-solid border-white';
+// Al pasar el cursor: el ícono sube un poco y aparece un halo magenta suave detrás.
+const iconWrapper =
+  'relative isolate flex items-center justify-center transition-transform duration-200 ease-out group-hover:-translate-y-0.5 ' +
+  "before:content-[''] before:absolute before:-inset-2 before:rounded-[12px] before:bg-campo-50 before:-z-10 " +
+  'before:opacity-0 before:scale-75 before:transition-[opacity,transform] before:duration-200 group-hover:before:opacity-100 group-hover:before:scale-100';
+const navLabel = 'text-[0.6875rem] font-semibold tracking-[0.01em] leading-none';
+// Rayita bajo el ícono de la pestaña activa.
+const indicadorActivo =
+  'absolute -bottom-[7px] left-1/2 -translate-x-1/2 w-5 h-[3px] rounded-pill bg-campo-700 animate-[aparecer-indicador_250ms_ease-out]';
+const contadorBadge =
+  'absolute -top-2 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-pill bg-danger text-white text-[0.625rem] font-bold leading-none ' +
+  'flex items-center justify-center border-2 border-solid border-white';
 
 export default function BottomNavBar({
   vistaActual,
@@ -29,24 +38,23 @@ export default function BottomNavBar({
   sincronizando = false,
   pendientesSync = 0,
 }: Props) {
-  const tieneNotificacionInicio = pendientesSync > 0;
   const fabActivo = vistaActual === 'nueva-intervencion';
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 h-[62px] bg-white border-0 border-t border-solid border-border shadow-[0_-2px_10px_rgba(14,26,59,0.08)] flex items-center justify-around px-2 z-50 max-w-[480px] mx-auto translate-z-0"
+      className="fixed bottom-3 left-3 right-3 h-[64px] bg-white rounded-[24px] border border-solid border-black/[0.04] shadow-[0_10px_30px_-8px_rgba(14,26,59,0.22),0_2px_6px_rgba(14,26,59,0.06)] flex items-center justify-around px-1.5 z-50 max-w-[456px] mx-auto translate-z-0"
       aria-label="Navegación principal"
     >
       {/* 1. Inicio */}
       <button type="button" className={navItem(vistaActual === 'inicio')} onClick={() => onCambiarVista('inicio')}>
         <div className={iconWrapper}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill={vistaActual === 'inicio' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
             <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
-          {tieneNotificacionInicio && <span className={cn(navDot, 'bg-[#ec4899]')} />}
+          {vistaActual === 'inicio' && <span className={indicadorActivo} />}
         </div>
-        <span className={navLabel}>Inicio</span>
+        <span className={cn(navLabel, 'mt-1.5')}>Inicio</span>
       </button>
 
       {/* 2. Trámites */}
@@ -57,30 +65,34 @@ export default function BottomNavBar({
             <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
             <path d="M9 12h6M9 16h4" />
           </svg>
+          {vistaActual === 'mis-tramites' && <span className={indicadorActivo} />}
         </div>
-        <span className={navLabel}>Trámites</span>
+        <span className={cn(navLabel, 'mt-1.5')}>Trámites</span>
       </button>
 
-      {/* 3. Botón Flotante Central (+) */}
-      <div className="flex items-center justify-center flex-1 relative">
-        <button
-          type="button"
+      {/* 3. Botón flotante central (+) con su etiqueta */}
+      <button
+        type="button"
+        className="flex flex-col items-center justify-end flex-1 h-full bg-transparent border-none cursor-pointer px-0 pb-2 gap-1 group"
+        onClick={onNuevaIntervencion}
+        title="Nueva Intervención"
+        aria-label="Nueva Intervención"
+      >
+        <span
           className={cn(
-            'w-[52px] h-[52px] rounded-full border-[3.5px] border-solid border-white flex items-center justify-center cursor-pointer -mt-6 transition-[transform,box-shadow] duration-150 translate-z-0 active:scale-[0.92] active:shadow-[0_2px_8px_rgba(29,58,143,0.3)]',
-            fabActivo
-              ? 'bg-linear-135 from-primary-800 to-primary-600 shadow-[0_0_0_3.5px_rgba(29,58,143,0.25),0_6px_18px_rgba(29,58,143,0.45)]'
-              : 'bg-linear-135 from-primary-700 to-primary-500 shadow-[0_4px_14px_rgba(29,58,143,0.4)]',
+            'w-[54px] h-[54px] -mt-8 rounded-full flex items-center justify-center transition-[transform,box-shadow] duration-200 ease-out translate-z-0',
+            'group-hover:-translate-y-1 group-hover:scale-105 group-hover:shadow-[0_12px_24px_-4px_rgba(101,10,64,0.6)] group-active:scale-[0.92]',
+            'bg-linear-135 from-campo-700 to-campo-900 shadow-[0_8px_18px_-4px_rgba(101,10,64,0.55)]',
+            fabActivo && 'ring-4 ring-campo-100',
           )}
-          onClick={onNuevaIntervencion}
-          title="Nueva Intervención"
-          aria-label="Nueva Intervención"
         >
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" className="transition-transform duration-300 ease-out group-hover:rotate-90">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-        </button>
-      </div>
+        </span>
+        <span className={cn(navLabel, 'text-campo-700 font-bold')}>Nuevo</span>
+      </button>
 
       {/* 4. Sincronizar */}
       <button type="button" className={navItem(false)} onClick={onSincronizar} disabled={sincronizando} aria-label="Sincronizar">
@@ -90,9 +102,11 @@ export default function BottomNavBar({
             <polyline points="21 3 21 8 16 8" />
             <polyline points="3 21 3 16 8 16" />
           </svg>
-          {pendientesSync > 0 && !sincronizando && <span className={cn(navDot, 'bg-warning')} />}
+          {pendientesSync > 0 && !sincronizando && (
+            <span className={contadorBadge}>{pendientesSync > 9 ? '9+' : pendientesSync}</span>
+          )}
         </div>
-        <span className={navLabel}>{sincronizando ? 'Enviando…' : 'Sincronizar'}</span>
+        <span className={cn(navLabel, 'mt-1.5')}>{sincronizando ? 'Enviando…' : 'Sincronizar'}</span>
       </button>
 
       {/* 5. Perfil */}
@@ -102,8 +116,9 @@ export default function BottomNavBar({
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
+          {vistaActual === 'perfil' && <span className={indicadorActivo} />}
         </div>
-        <span className={navLabel}>Perfil</span>
+        <span className={cn(navLabel, 'mt-1.5')}>Perfil</span>
       </button>
     </nav>
   );

@@ -30,8 +30,25 @@ import type { IntervencionCuisLocal } from '../../lib/db';
  */
 
 import WizardHeader from '../../components/WizardHeader';
-import { actionsFooter, alerta, appContainer, badge, btn, card, customList, customListItem, customListItemHeader, formGroup, formHint, formInput, formLabel, optionCard, optionCardContent, optionCardDesc, optionCardTitle, optionsGrid } from '../../lib/ui';
+import { alerta, appContainer, btnCampo, btnCampoSecundario, campoRelleno, campoRellenoIcono, campoRellenoInput, iconoTarjeta, tarjetaSuave } from '../../lib/ui';
 import { cn } from '../../lib/cn';
+
+// Código CUIS como etiqueta magenta (en resultados y seleccionados).
+const chipCodigo =
+  'inline-flex items-center px-2.5 py-1 rounded-pill bg-campo-50 border border-solid border-campo-100 text-campo-700 text-xs font-bold tracking-[0.02em] whitespace-nowrap';
+const chipEscala = 'inline-flex items-center px-2 py-0.5 rounded-pill text-[0.6875rem] font-bold whitespace-nowrap border border-solid';
+// Color por gravedad real del catálogo (L/G/MG).
+const COLOR_ESCALA: Record<EscalaCuisLocal['escala'], string> = {
+  L: 'bg-success-bg border-success-border text-success',
+  G: 'bg-warning-bg border-warning-border text-warning',
+  MG: 'bg-danger-bg border-danger-border text-danger',
+};
+const btnQuitar =
+  'inline-flex items-center gap-1 px-2.5 py-1 rounded-pill bg-transparent border border-solid border-danger-border text-danger text-xs font-semibold cursor-pointer shrink-0 ' +
+  'transition-colors duration-150 hover:bg-danger-bg';
+const btnAgregar =
+  'inline-flex items-center gap-1 px-3 py-1.5 rounded-pill bg-linear-135 from-campo-700 to-campo-900 border-none text-white text-xs font-bold cursor-pointer shrink-0 ' +
+  'shadow-[0_4px_10px_-4px_rgba(101,10,64,0.5)] transition-transform duration-150 active:scale-95';
 
 interface Props {
   localId: string;
@@ -102,55 +119,40 @@ export default function CuisSelectorScreen({ localId, onContinuar, onVolver }: P
   if (codigoPendienteDeEscala) {
     return (
       <div className={appContainer}>
-        <div className={cn(card(), 'border-t-[4px]! border-solid! border-t-primary-600!')}>
-          <div className="mb-[1rem]">
-            <span className={cn(badge('primary'), 'text-[0.875rem]! mb-[0.375rem]!')}>
-              Código {codigoPendienteDeEscala.codigo}
-            </span>
-            <h2 className="text-[1.125rem] mt-[0.25rem]">Seleccionar Escala de Gravedad</h2>
-            <p className="text-[0.875rem] text-text-muted">
-              {codigoPendienteDeEscala.descripcion}
-            </p>
+        <div className={cn(tarjetaSuave, 'p-4')}>
+          <span className={chipCodigo}>Código {codigoPendienteDeEscala.codigo}</span>
+          <h2 className="font-titulo text-[1.25rem] font-black text-text-title leading-tight mt-2.5 mb-1">
+            Seleccionar escala de gravedad
+          </h2>
+          <p className="text-[0.8125rem] text-text-muted mb-4">{codigoPendienteDeEscala.descripcion}</p>
+
+          <div className={cn(alerta('info'), 'rounded-[14px] bg-campo-50! border-campo-100! text-campo-800!')}>
+            Este código cuenta con múltiples condiciones tarifarias. Selecciona la escala correspondiente al hecho constatado.
           </div>
 
-          <div className={alerta('info')}>
-            Este código cuenta con múltiples condiciones tarifarias. Selecciona la escala correspondiente al hecho constatado:
-          </div>
-
-          <div className={optionsGrid}>
+          <div className="flex flex-col gap-2.5">
             {codigoPendienteDeEscala.escalas.map((escala) => (
-              <div
+              <button
                 key={escala.id}
-                className={optionCard(false)}
+                type="button"
+                className="w-full text-left px-3.5 py-3 rounded-[16px] border-[1.5px] border-solid border-border bg-white cursor-pointer transition-[border-color,background-color] duration-150 hover:border-campo-200 hover:bg-campo-50/40 active:scale-[0.99]"
                 onClick={() => handleConfirmarEscala(codigoPendienteDeEscala, escala)}
-                role="button"
-                tabIndex={0}
               >
-                <div className={optionCardContent}>
-                  <div className="flex items-center justify-between gap-[0.5rem]">
-                    <span className={optionCardTitle}>{etiquetaEscala(escala.escala)}</span>
-                    <span className={badge('primary')}>{escala.porcentaje}% UIT</span>
-                  </div>
-                  {escala.condicion && (
-                    <div className={cn(optionCardDesc, 'mt-[0.25rem]!')}>
-                      {escala.condicion}
-                    </div>
-                  )}
-                  {escala.medidaProvisional && (
-                    <div className="text-[0.75rem] text-warning mt-[0.25rem]">
-                      Medida prov.: {escala.medidaProvisional}
-                    </div>
-                  )}
+                <div className="flex items-center justify-between gap-2">
+                  <span className={cn(chipEscala, COLOR_ESCALA[escala.escala])}>{etiquetaEscala(escala.escala)}</span>
+                  <span className="text-[0.9375rem] font-bold text-campo-700">{escala.porcentaje}% UIT</span>
                 </div>
-              </div>
+                {escala.condicion && <div className="text-xs text-text-body mt-1.5 leading-snug">{escala.condicion}</div>}
+                {escala.medidaProvisional && (
+                  <div className="text-xs text-warning mt-1">Medida prov.: {escala.medidaProvisional}</div>
+                )}
+              </button>
             ))}
           </div>
+        </div>
 
-          <button
-            type="button"
-            className={cn(btn('secondary', { block: true }), 'mt-[0.75rem]!')}
-            onClick={() => setCodigoPendienteDeEscala(null)}
-          >
+        <div className="flex flex-col gap-2.5 mt-6">
+          <button type="button" className={btnCampoSecundario} onClick={() => setCodigoPendienteDeEscala(null)}>
             Cancelar
           </button>
         </div>
@@ -169,79 +171,75 @@ export default function CuisSelectorScreen({ localId, onContinuar, onVolver }: P
       />
 
       {catalogoVacio && (
-        <div className={alerta('warning')} role="alert">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
-          <div className="flex-1">
-            <div className="font-semibold">Catálogo local vacío</div>
-            <p className="text-[0.8125rem] mb-[0.5rem]">
-              El catálogo CUIS aún no se ha descargado a este dispositivo. Si tienes conexión, sincronízalo ahora.
-            </p>
-            <button
-              type="button"
-              className={btn('primary', { tamano: 'sm' })}
-              onClick={handleSincronizar}
-              disabled={sincronizando}
-            >
-              {sincronizando ? 'Sincronizando…' : 'Descargar catálogo CUIS'}
-            </button>
-            {errorSync && <p role="alert" className="text-danger text-[0.75rem] mt-[0.25rem]">{errorSync}</p>}
+        <div className={cn(tarjetaSuave, 'p-4 mb-4')} role="alert">
+          <div className="flex items-start gap-3.5">
+            <div className={cn(iconoTarjeta, 'bg-warning-bg text-warning')}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[0.9375rem] font-bold text-text-title">Catálogo local vacío</div>
+              <p className="text-xs text-text-muted mt-0.5 mb-0 leading-snug">
+                El catálogo CUIS aún no se ha descargado a este dispositivo. Si tienes conexión, descárgalo ahora.
+              </p>
+            </div>
           </div>
+          <button type="button" className={cn(btnCampo, 'min-h-11 text-sm mt-3.5')} onClick={handleSincronizar} disabled={sincronizando}>
+            {sincronizando ? 'Descargando…' : 'Descargar catálogo CUIS'}
+          </button>
+          {errorSync && (
+            <p role="alert" className="text-danger text-xs mt-2 mb-0">
+              {errorSync}
+            </p>
+          )}
         </div>
       )}
 
       {/* Buscador de Infracciones */}
-      <div className={card()}>
-        <div className={cn(formGroup, 'mb-0!')}>
-          <label className={formLabel}>Buscar por código o descripción</label>
-          <div className="relative">
-            <input
-              type="text"
-              className={cn(formInput, 'pl-[2.25rem]!')}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Ej. 7.01.06, residuos, ruidos, licencia…"
-            />
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2" className="absolute left-[0.75rem] top-[50%] -translate-y-1/2 text-text-muted">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      <div className={cn(tarjetaSuave, 'p-4 mb-4')}>
+        <label className={campoRelleno} htmlFor="buscar-cuis">
+          <span className={campoRellenoIcono}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M21 21l-4.35-4.35" />
             </svg>
-          </div>
-        </div>
+          </span>
+          <input
+            id="buscar-cuis"
+            type="search"
+            className={cn(campoRellenoInput, 'text-[0.9375rem]')}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Código o descripción: 7.01.06, ruidos…"
+          />
+        </label>
 
         {query.trim().length > 0 && (
-          <div className="mt-[0.75rem]">
-            <span className={cn(formHint, 'block! mb-[0.5rem]!')}>
-              Resultados encontrados ({resultados.length})
-            </span>
+          <div className="mt-3.5">
+            <p className="text-[0.725rem] font-bold uppercase tracking-[0.06em] text-text-muted mb-2">
+              {resultados.length} resultado{resultados.length === 1 ? '' : 's'}
+            </p>
             {resultados.length === 0 ? (
-              <p className="text-[0.875rem] text-text-muted text-center py-[1rem] px-0">
+              <p className="text-[0.8125rem] text-text-muted text-center py-4 m-0">
                 No se encontraron códigos que coincidan con "{query}".
               </p>
             ) : (
-              <ul className={cn(customList, 'max-h-[260px]! overflow-y-auto!')}>
+              <ul className="list-none m-0 p-0 flex flex-col gap-2 max-h-[300px] overflow-y-auto">
                 {resultados.map((r) => (
-                  <li key={r.id} className={customListItem}>
-                    <div className={customListItemHeader}>
-                      <span className={badge('primary')}>{r.codigo}</span>
-                      <button
-                        type="button"
-                        className={btn('outline', { tamano: 'sm' })}
-                        onClick={() => handleElegir(r)}
-                      >
-                        + Agregar
+                  <li key={r.id} className="rounded-[14px] border border-solid border-border bg-white p-3 flex flex-col gap-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={chipCodigo}>{r.codigo}</span>
+                      <button type="button" className={btnAgregar} onClick={() => handleElegir(r)}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                          <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        Agregar
                       </button>
                     </div>
-                    <p className="text-[0.8125rem] mb-0 text-text-body">
+                    <p className="text-[0.8125rem] m-0 text-text-body leading-snug">
                       {r.descripcion ?? '(Sin descripción detallada)'}
                     </p>
                   </li>
@@ -253,26 +251,29 @@ export default function CuisSelectorScreen({ localId, onContinuar, onVolver }: P
       </div>
 
       {/* Códigos Seleccionados */}
-      <div className={card()}>
-        <div className="flex items-center justify-between mb-[0.75rem]">
-          <h2 className="text-[1rem] m-0">
-            Infracciones seleccionadas
-          </h2>
-          <span className={badge(seleccionados.length > 0 ? 'success' : 'neutral')}>
-            {seleccionados.length} código(s)
+      <div className={cn(tarjetaSuave, 'p-4')}>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <h2 className="text-[0.9375rem] font-bold text-text-title m-0">Infracciones seleccionadas</h2>
+          <span
+            className={cn(
+              'inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-pill text-xs font-bold',
+              seleccionados.length > 0 ? 'bg-linear-135 from-campo-700 to-campo-900 text-white' : 'bg-bg-subtle text-text-muted',
+            )}
+          >
+            {seleccionados.length}
           </span>
         </div>
 
         {huerfanos.length > 0 && (
-          <div className="mb-[0.75rem] p-[0.75rem] rounded-md border border-solid border-danger-border bg-danger-bg text-danger text-[0.875rem]">
-            <p className="m-0 mb-[0.5rem]">
+          <div className="mb-3 p-3 rounded-[14px] border border-solid border-danger-border bg-danger-bg text-danger text-[0.8125rem]">
+            <p className="m-0 mb-2">
               {huerfanos.length === 1 ? 'Un código de esta intervención' : `${huerfanos.length} códigos de esta intervención`} ya
               no existe en el catálogo actualizado. Quítalo y vuelve a elegirlo, si no el servidor rechazará la sincronización.
             </p>
             {huerfanos.map((h) => (
-              <div key={h.id} className="flex items-center justify-between gap-[0.5rem] mb-[0.25rem]">
-                <span>{h.codigoNormativo ? `Código ${h.codigoNormativo}` : 'Código desconocido'}</span>
-                <button type="button" className={btn('danger', { tamano: 'sm' })} onClick={() => handleQuitar(h.id)}>
+              <div key={h.id} className="flex items-center justify-between gap-2 mb-1">
+                <span className="font-semibold">{h.codigoNormativo ? `Código ${h.codigoNormativo}` : 'Código desconocido'}</span>
+                <button type="button" className={btnQuitar} onClick={() => handleQuitar(h.id)}>
                   Quitar
                 </button>
               </div>
@@ -281,40 +282,51 @@ export default function CuisSelectorScreen({ localId, onContinuar, onVolver }: P
         )}
 
         {seleccionados.length === 0 ? (
-          <p className="text-[0.875rem] text-text-muted mb-0 py-[0.5rem] px-0">
-            Todavía no has seleccionado ningún código de infracción. Puedes buscar en el catálogo arriba.
-          </p>
+          <div className="text-center py-5 px-2">
+            <div className={cn(iconoTarjeta, 'w-12 h-12 rounded-full mx-auto mb-2.5 bg-campo-50 text-campo-700')}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 11l3 3L22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
+            </div>
+            <p className="text-sm font-semibold text-text-title mb-0.5">Sin infracciones aún</p>
+            <p className="text-xs text-text-muted m-0">Busca un código arriba y tócalo en "Agregar".</p>
+          </div>
         ) : (
-          <ul className={customList}>
+          <ul className="list-none m-0 p-0 flex flex-col gap-2.5">
             {seleccionados.map(({ registro, codigo, escala }) => (
-              <li key={registro.id} className={cn(customListItem, 'border-l-[3px]! border-solid! border-l-primary-600!')}>
-                <div className={customListItemHeader}>
-                  <div className="flex items-center gap-[0.5rem]">
-                    <span className={badge('primary')}>{codigo.codigo}</span>
+              <li
+                key={registro.id}
+                className="rounded-[14px] border border-solid border-campo-100 bg-campo-50/50 p-3 flex flex-col gap-2 border-l-4 border-l-campo-600"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                    <span className={chipCodigo}>{codigo.codigo}</span>
                     {escala && (
-                      <span className={badge('neutral')}>
-                        {etiquetaEscala(escala.escala)} ({escala.porcentaje}% UIT)
+                      <span className={cn(chipEscala, COLOR_ESCALA[escala.escala])}>
+                        {etiquetaEscala(escala.escala)} · {escala.porcentaje}% UIT
                       </span>
                     )}
                   </div>
-                  <button
-                    type="button"
-                    className={btn('danger', { tamano: 'sm' })}
-                    onClick={() => handleQuitar(registro.id)}
-                  >
+                  <button type="button" className={btnQuitar} onClick={() => handleQuitar(registro.id)} aria-label={`Quitar código ${codigo.codigo}`}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
                     Quitar
                   </button>
                 </div>
 
-                <div className="text-[0.875rem] text-text-body">
-                  {codigo.descripcion}
-                </div>
+                <div className="text-[0.8125rem] text-text-body leading-snug">{codigo.descripcion}</div>
 
                 {escala && (
-                  <div className="text-[0.75rem] text-text-muted">
-                    {escala.condicion && <div><strong>Condición:</strong> {escala.condicion}</div>}
+                  <div className="text-xs text-text-muted flex flex-col gap-0.5">
+                    {escala.condicion && (
+                      <div>
+                        <span className="font-semibold text-text-body">Condición:</span> {escala.condicion}
+                      </div>
+                    )}
                     <div>
-                      <strong>Medida provisional:</strong> {escala.medidaProvisional ?? 'No aplica'}
+                      <span className="font-semibold text-text-body">Medida provisional:</span> {escala.medidaProvisional ?? 'No aplica'}
                     </div>
                   </div>
                 )}
@@ -324,14 +336,10 @@ export default function CuisSelectorScreen({ localId, onContinuar, onVolver }: P
         )}
       </div>
 
-      <div className={actionsFooter}>
-        <button
-          type="button"
-          className={btn('primary', { tamano: 'lg', block: true })}
-          onClick={onContinuar}
-        >
+      <div className="flex flex-col gap-2.5 mt-6">
+        <button type="button" className={btnCampo} onClick={onContinuar}>
           <span>Continuar</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>
         </button>
