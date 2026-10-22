@@ -41,9 +41,55 @@ interface DatosResumen {
   tieneFirmaInspector: boolean;
 }
 
+import type { ReactNode } from 'react';
 import WizardHeader from '../../components/WizardHeader';
 import { cn } from '../../lib/cn';
-import { actionsFooter, alerta, appContainer, badge, btn, card, customList, formGroup, formHint, formInput, formLabel, formLabelRequired } from '../../lib/ui';
+import { alerta, appContainer, btnCampo, campoRelleno, campoRellenoEtiqueta, campoRellenoInput, iconoTarjeta, tarjetaSuave } from '../../lib/ui';
+
+type EstadoSeccion = 'ok' | 'falta' | 'opcional';
+
+interface SeccionResumen {
+  clave: string;
+  titulo: string;
+  detalle: ReactNode;
+  estado: EstadoSeccion;
+  etiqueta?: string;
+  icono: ReactNode;
+  editar?: SeccionWizard;
+}
+
+const svg = (contenido: ReactNode) => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    {contenido}
+  </svg>
+);
+
+const ICONOS = {
+  ubicacion: svg(<><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></>),
+  administrado: svg(<><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></>),
+  cuis: svg(<><path d="M12 9v4M12 17h.01" /><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /></>),
+  acta: svg(<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></>),
+  notificacion: svg(<><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" /><polyline points="22 6 12 13 2 6" /></>),
+  entrega: svg(<><path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4 20-7z" /></>),
+  adicionales: svg(<><rect x="8" y="2" width="8" height="4" rx="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M12 11v6M9 14h6" /></>),
+  fotos: svg(<><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></>),
+  firma: svg(<><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></>),
+};
+
+const COLOR_ICONO: Record<EstadoSeccion, string> = {
+  ok: 'bg-success-bg text-success',
+  falta: 'bg-warning-bg text-warning',
+  opcional: 'bg-campo-50 text-campo-700',
+};
+const chipEstado = 'inline-flex items-center px-2 py-0.5 rounded-pill text-[0.6875rem] font-bold whitespace-nowrap border border-solid';
+const COLOR_CHIP: Record<EstadoSeccion, string> = {
+  ok: 'bg-success-bg border-success-border text-success',
+  falta: 'bg-warning-bg border-warning-border text-warning',
+  opcional: 'bg-bg-subtle border-border text-text-muted',
+};
+const btnEditar =
+  'inline-flex items-center gap-1 px-3 py-1.5 rounded-pill bg-white border border-solid border-campo-200 text-campo-700 text-xs font-semibold cursor-pointer shrink-0 ' +
+  'transition-colors duration-150 hover:bg-campo-50 active:scale-95';
 
 export default function ResumenScreen({
   localId,
@@ -94,9 +140,9 @@ export default function ResumenScreen({
         administradoTexto: administrado?.identificado
           ? `${administrado.nombresRazonSocial ?? '(sin nombre)'} - ${administrado.numeroDocumento ?? '(sin documento)'}`
           : 'No identificado (pendiente de saneamiento)',
-        ubicacionTexto: intervencion?.latitud
-          ? `${intervencion.latitud.toFixed(5)}, ${intervencion.longitud?.toFixed(5)}`
-          : intervencion?.direccionAproximada ?? '(sin ubicación)',
+        ubicacionTexto:
+          intervencion?.direccionAproximada ??
+          (intervencion?.latitud ? `${intervencion.latitud.toFixed(5)}, ${intervencion.longitud?.toFixed(5)}` : '(sin ubicación)'),
         cuisTextos: cuis.map((s) => `${s.codigo.codigo} - ${s.codigo.descripcion ?? ''}`),
         tieneActaExhortacion: !!actaExhortacion,
         tieneActaFiscalizacion: !!actaFiscalizacion,
@@ -112,8 +158,11 @@ export default function ResumenScreen({
 
   if (!datos) {
     return (
-      <div className={cn(appContainer, 'text-center! py-[3rem]! px-[1rem]!')}>
-        <p className="text-text-muted">Cargando resumen de la intervención…</p>
+      <div className={appContainer}>
+        <div className={cn(tarjetaSuave, 'p-6 text-center')}>
+          <div className={cn(iconoTarjeta, 'w-12 h-12 rounded-full mx-auto mb-3 bg-campo-50 text-campo-700 animate-pulse')}>{ICONOS.acta}</div>
+          <p className="text-sm text-text-muted m-0">Cargando resumen de la intervención…</p>
+        </div>
       </div>
     );
   }
@@ -156,6 +205,104 @@ export default function ResumenScreen({
     }
   }
 
+  const esPas = datos.tipoActuacion === TipoActuacion.INICIA_PAS;
+  const estadoDe = (seccion: SeccionWizard): EstadoSeccion => (tieneFaltante(seccion) ? 'falta' : 'ok');
+
+  const secciones: SeccionResumen[] = [
+    { clave: 'ubicacion', titulo: 'Ubicación', detalle: datos.ubicacionTexto, estado: 'ok', icono: ICONOS.ubicacion },
+    { clave: 'administrado', titulo: 'Administrado', detalle: datos.administradoTexto, estado: 'ok', icono: ICONOS.administrado, editar: 'administrado' },
+    {
+      clave: 'cuis',
+      titulo: 'Infracciones (CUIS)',
+      detalle:
+        datos.cuisTextos.length === 0 ? (
+          'Ningún código seleccionado.'
+        ) : (
+          <ul className="list-none m-0 p-0 flex flex-col gap-0.5">
+            {datos.cuisTextos.map((t) => (
+              <li key={t}>• {t}</li>
+            ))}
+          </ul>
+        ),
+      estado: estadoDe('cuis'),
+      etiqueta: datos.cuisTextos.length > 0 ? `${datos.cuisTextos.length}` : 'Requerido',
+      icono: ICONOS.cuis,
+      editar: 'cuis',
+    },
+  ];
+
+  if (datos.tipoActuacion === TipoActuacion.EXHORTACION) {
+    secciones.push({
+      clave: 'acta-exhortacion',
+      titulo: 'Acta de Exhortación',
+      detalle: datos.tieneActaExhortacion ? 'Registrada correctamente.' : 'Falta registrar el acta.',
+      estado: estadoDe('acta-exhortacion'),
+      icono: ICONOS.acta,
+      editar: 'acta-exhortacion',
+    });
+  }
+  if (datos.tipoActuacion === TipoActuacion.CONSTATACION || esPas) {
+    secciones.push({
+      clave: 'acta-fiscalizacion',
+      titulo: 'Acta de Fiscalización',
+      detalle: datos.tieneActaFiscalizacion ? 'Registrada correctamente.' : 'Falta registrar el acta.',
+      estado: estadoDe('acta-fiscalizacion'),
+      icono: ICONOS.acta,
+      editar: 'acta-fiscalizacion',
+    });
+  }
+  if (esPas) {
+    secciones.push({
+      clave: 'notificacion-cargo',
+      titulo: 'Notificación de Cargo',
+      detalle: datos.tieneNotificacionCargo ? 'Registrada correctamente.' : 'Falta registrar la NC.',
+      estado: estadoDe('notificacion-cargo'),
+      icono: ICONOS.notificacion,
+      editar: 'notificacion-cargo',
+    });
+    if (datos.tieneNotificacionCargo) {
+      secciones.push({
+        clave: 'notificacion-entrega',
+        titulo: 'Entrega de Notificación',
+        detalle: datos.entregaNcTexto ?? 'Todavía no se respondió si se entregó en el acto.',
+        estado: estadoDe('notificacion-entrega'),
+        icono: ICONOS.entrega,
+        editar: 'notificacion-entrega',
+      });
+    }
+    secciones.push({
+      clave: 'adicionales',
+      titulo: 'Actas Adicionales',
+      detalle: `${datos.totalAdicionales} registrada(s).`,
+      estado: 'opcional',
+      etiqueta: 'Opcional',
+      icono: ICONOS.adicionales,
+    });
+  }
+  secciones.push(
+    {
+      clave: 'fotos',
+      titulo: 'Evidencia Fotográfica',
+      detalle: datos.totalFotos > 0 ? `${datos.totalFotos} fotografía(s) adjuntada(s).` : 'Falta adjuntar al menos 1 fotografía.',
+      estado: estadoDe('fotos'),
+      etiqueta: `${datos.totalFotos} foto(s)`,
+      icono: ICONOS.fotos,
+      editar: 'fotos',
+    },
+    {
+      clave: 'firma',
+      titulo: 'Firma del Inspector',
+      detalle: datos.tieneFirmaInspector ? 'Firma digital registrada y validada.' : 'Falta capturar la firma del inspector.',
+      estado: estadoDe('firma'),
+      icono: ICONOS.firma,
+      editar: 'firma',
+    },
+  );
+
+  const obligatorias = secciones.filter((x) => x.estado !== 'opcional');
+  const completas = obligatorias.filter((x) => x.estado === 'ok').length;
+  const porcentaje = Math.round((completas / obligatorias.length) * 100);
+
   return (
     <div className={appContainer}>
       <WizardHeader
@@ -167,256 +314,86 @@ export default function ResumenScreen({
         deshabilitarVolver={finalizando}
       />
 
-      {faltantes.length > 0 ? (
-        <div className={cn(alerta('warning'), 'mb-[1.25rem]!')} role="alert">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
-          <div>
-            <div className="font-bold">Campos obligatorios pendientes ({faltantes.length})</div>
-            <p className="text-[0.8125rem] mb-0 mt-[0.25rem]">
-              Revisa y completa las secciones marcadas con advertencia antes de finalizar el acta.
-            </p>
+      {/* Avance de requisitos */}
+      <div className={cn(tarjetaSuave, 'p-4 mb-4')} role={faltantes.length > 0 ? 'alert' : undefined}>
+        <div className="flex items-center gap-3.5">
+          <div className={cn(iconoTarjeta, faltantes.length > 0 ? 'bg-warning-bg text-warning' : 'bg-success-bg text-success')}>
+            {faltantes.length > 0
+              ? svg(<><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></>)
+              : svg(<polyline points="20 6 9 17 4 12" />)}
           </div>
-        </div>
-      ) : (
-        <div className={cn(alerta('success'), 'mb-[1.25rem]!')}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          <div>
-            <div className="font-bold">Todos los requisitos completos</div>
-            <p className="text-[0.8125rem] mb-0 mt-[0.25rem]">
-              La intervención cuenta con todos los datos legales requeridos para su cierre y transmisión.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* 1. Ubicación */}
-      <div className={card()}>
-        <div className="flex items-center justify-between">
-          <h2 className="text-[0.9375rem] m-0">1. Ubicación Georreferenciada</h2>
-          <span className={badge('success')}>Registrada</span>
-        </div>
-        <p className="text-[0.875rem] mt-[0.5rem] mb-0 text-text-body">
-          {datos.ubicacionTexto}
-        </p>
-      </div>
-
-      {/* 2. Administrado */}
-      <div className={card()}>
-        <div className="flex items-center justify-between mb-[0.5rem]">
-          <h2 className="text-[0.9375rem] m-0">2. Administrado</h2>
-          <button
-            type="button"
-            className={btn('outline', { tamano: 'sm' })}
-            onClick={() => onEditar('administrado')}
-          >
-            Editar
-          </button>
-        </div>
-        <p className="text-[0.875rem] mb-0 text-text-body">
-          {datos.administradoTexto}
-        </p>
-      </div>
-
-      {/* 3. Códigos CUIS */}
-      <div className={card(tieneFaltante('cuis') ? 'warning' : 'default')}>
-        <div className="flex items-center justify-between mb-[0.5rem]">
-          <div className="flex items-center gap-[0.5rem]">
-            <h2 className="text-[0.9375rem] m-0">3. Códigos de Infracción (CUIS)</h2>
-            {tieneFaltante('cuis') && <span className={badge('danger')}>Requerido</span>}
-          </div>
-          <button
-            type="button"
-            className={btn('outline', { tamano: 'sm' })}
-            onClick={() => onEditar('cuis')}
-          >
-            Editar
-          </button>
-        </div>
-        {datos.cuisTextos.length === 0 ? (
-          <p className="text-[0.875rem] text-text-muted mb-0">
-            Ningún código seleccionado.
-          </p>
-        ) : (
-          <ul className={customList}>
-            {datos.cuisTextos.map((t) => (
-              <li key={t} className="text-[0.8125rem] text-text-body">
-                • {t}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {/* 4. Actas según el camino */}
-      {datos.tipoActuacion === TipoActuacion.EXHORTACION && (
-        <div className={card(tieneFaltante('acta-exhortacion') ? 'warning' : 'default')}>
-          <div className="flex items-center justify-between mb-[0.5rem]">
-            <div className="flex items-center gap-[0.5rem]">
-              <h2 className="text-[0.9375rem] m-0">4. Acta de Exhortación</h2>
-              {tieneFaltante('acta-exhortacion') ? (
-                <span className={badge('danger')}>Falta</span>
-              ) : (
-                <span className={badge('success')}>Registrada</span>
-              )}
+          <div className="flex-1 min-w-0">
+            <div className="text-[0.9375rem] font-bold text-text-title leading-tight">
+              {faltantes.length > 0 ? `Faltan ${faltantes.length} requisito${faltantes.length === 1 ? '' : 's'}` : 'Todo listo para cerrar'}
             </div>
-            <button
-              type="button"
-              className={btn('outline', { tamano: 'sm' })}
-              onClick={() => onEditar('acta-exhortacion')}
-            >
-              Editar
-            </button>
-          </div>
-          <p className="text-[0.875rem] mb-0 text-text-body">
-            {datos.tieneActaExhortacion ? 'Registrada correctamente.' : 'Falta registrar el acta.'}
-          </p>
-        </div>
-      )}
-
-      {(datos.tipoActuacion === TipoActuacion.CONSTATACION || datos.tipoActuacion === TipoActuacion.INICIA_PAS) && (
-        <div className={card(tieneFaltante('acta-fiscalizacion') ? 'warning' : 'default')}>
-          <div className="flex items-center justify-between mb-[0.5rem]">
-            <div className="flex items-center gap-[0.5rem]">
-              <h2 className="text-[0.9375rem] m-0">4. Acta de Fiscalización</h2>
-              {tieneFaltante('acta-fiscalizacion') ? (
-                <span className={badge('danger')}>Falta</span>
-              ) : (
-                <span className={badge('success')}>Registrada</span>
-              )}
+            <div className="text-xs text-text-muted mt-0.5 leading-snug">
+              {faltantes.length > 0
+                ? 'Completa las secciones marcadas antes de finalizar.'
+                : 'La intervención tiene todos los datos requeridos para su cierre.'}
             </div>
-            <button
-              type="button"
-              className={btn('outline', { tamano: 'sm' })}
-              onClick={() => onEditar('acta-fiscalizacion')}
-            >
-              Editar
-            </button>
           </div>
-          <p className="text-[0.875rem] mb-0 text-text-body">
-            {datos.tieneActaFiscalizacion ? 'Registrada correctamente.' : 'Falta registrar el acta.'}
-          </p>
+          <div className="font-titulo text-[1.375rem] font-black text-campo-700 leading-none shrink-0">
+            {completas}/{obligatorias.length}
+          </div>
         </div>
-      )}
+        <div className="w-full h-2 bg-bg-subtle rounded-pill overflow-hidden mt-3.5">
+          <div
+            className={cn('h-full rounded-pill transition-[width] duration-300', faltantes.length > 0 ? 'bg-warning' : 'bg-success')}
+            style={{ width: `${porcentaje}%` }}
+          />
+        </div>
+      </div>
 
-      {datos.tipoActuacion === TipoActuacion.INICIA_PAS && (
-        <>
-          <div className={card(tieneFaltante('notificacion-cargo') ? 'warning' : 'default')}>
-            <div className="flex items-center justify-between mb-[0.5rem]">
-              <div className="flex items-center gap-[0.5rem]">
-                <h2 className="text-[0.9375rem] m-0">5. Notificación de Cargo</h2>
-                {tieneFaltante('notificacion-cargo') ? (
-                  <span className={badge('danger')}>Falta</span>
-                ) : (
-                  <span className={badge('success')}>Registrada</span>
+      {/* Secciones */}
+      <div className={cn(tarjetaSuave, 'overflow-hidden mb-4')}>
+        {secciones.map((seccion) => (
+          <div
+            key={seccion.clave}
+            className={cn(
+              'flex items-start gap-3.5 px-4 py-3.5 border-0 border-b border-solid border-border last:border-b-0',
+              seccion.estado === 'falta' && 'bg-warning-bg/40',
+            )}
+          >
+            <div className={cn(iconoTarjeta, 'w-10 h-10', COLOR_ICONO[seccion.estado])}>{seccion.icono}</div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[0.9375rem] font-bold text-text-title leading-tight">{seccion.titulo}</span>
+                {(seccion.etiqueta || seccion.estado === 'falta') && (
+                  <span className={cn(chipEstado, COLOR_CHIP[seccion.estado])}>
+                    {seccion.estado === 'falta' && !seccion.etiqueta ? 'Falta' : seccion.etiqueta}
+                  </span>
                 )}
               </div>
-              <button
-                type="button"
-                className={btn('outline', { tamano: 'sm' })}
-                onClick={() => onEditar('notificacion-cargo')}
-              >
+              <div className="text-xs text-text-muted mt-1 leading-snug break-words">{seccion.detalle}</div>
+            </div>
+            {seccion.editar && (
+              <button type="button" className={btnEditar} onClick={() => onEditar(seccion.editar!)} aria-label={`Editar ${seccion.titulo}`}>
                 Editar
               </button>
-            </div>
-            <p className="text-[0.875rem] mb-0 text-text-body">
-              {datos.tieneNotificacionCargo ? 'Registrada correctamente.' : 'Falta registrar la NC.'}
-            </p>
+            )}
           </div>
-
-          {datos.tieneNotificacionCargo && (
-            <div className={card(tieneFaltante('notificacion-entrega') ? 'warning' : 'default')}>
-              <div className="flex items-center justify-between mb-[0.5rem]">
-                <div className="flex items-center gap-[0.5rem]">
-                  <h2 className="text-[0.9375rem] m-0">6. Entrega de Notificación</h2>
-                  {tieneFaltante('notificacion-entrega') && <span className={badge('danger')}>Falta</span>}
-                </div>
-                <button
-                  type="button"
-                  className={btn('outline', { tamano: 'sm' })}
-                  onClick={() => onEditar('notificacion-entrega')}
-                >
-                  Editar
-                </button>
-              </div>
-              <p className="text-[0.875rem] mb-0 text-text-body">
-                {datos.entregaNcTexto ?? 'Todavía no se respondió si se entregó en el acto.'}
-              </p>
-            </div>
-          )}
-
-          <div className={card()}>
-            <h2 className="text-[0.9375rem] mt-0 mr-0 mb-[0.5rem] ml-0">7. Actas Adicionales</h2>
-            <p className="text-[0.875rem] mb-0 text-text-body">
-              {datos.totalAdicionales} registrada(s) (opcionales).
-            </p>
-          </div>
-        </>
-      )}
-
-      {/* 5. Fotos */}
-      <div className={card(tieneFaltante('fotos') ? 'warning' : 'default')}>
-        <div className="flex items-center justify-between mb-[0.5rem]">
-          <div className="flex items-center gap-[0.5rem]">
-            <h2 className="text-[0.9375rem] m-0">Evidencia Fotográfica</h2>
-            <span className={badge(datos.totalFotos > 0 ? 'success' : 'warning')}>
-              {datos.totalFotos} foto(s)
-            </span>
-          </div>
-          <button
-            type="button"
-            className={btn('outline', { tamano: 'sm' })}
-            onClick={() => onEditar('fotos')}
-          >
-            Editar
-          </button>
-        </div>
-        <p className="text-[0.875rem] mb-0 text-text-body">
-          {datos.totalFotos > 0 ? `${datos.totalFotos} fotografía(s) adjuntada(s).` : 'Falta adjuntar al menos 1 fotografía.'}
-        </p>
-      </div>
-
-      {/* 6. Firma */}
-      <div className={card(tieneFaltante('firma') ? 'warning' : 'default')}>
-        <div className="flex items-center justify-between mb-[0.5rem]">
-          <div className="flex items-center gap-[0.5rem]">
-            <h2 className="text-[0.9375rem] m-0">Firma del Inspector</h2>
-            <span className={badge(datos.tieneFirmaInspector ? 'success' : 'danger')}>
-              {datos.tieneFirmaInspector ? 'Conforme' : 'Falta'}
-            </span>
-          </div>
-          <button
-            type="button"
-            className={btn('outline', { tamano: 'sm' })}
-            onClick={() => onEditar('firma')}
-          >
-            Editar
-          </button>
-        </div>
-        <p className="text-[0.875rem] mb-0 text-text-body">
-          {datos.tieneFirmaInspector ? 'Firma digital registrada y validada.' : 'Falta capturar la firma del inspector.'}
-        </p>
+        ))}
       </div>
 
       {modoEdicion && (
-        <div className={card()}>
-          <div className={cn(formGroup, 'mb-0!')}>
-            <label className={cn(formLabel, formLabelRequired)}>¿Qué se corrigió?</label>
-            <textarea
-              className={formInput}
-              rows={3}
-              placeholder="Ej. Corregí el número de DNI del administrado, que estaba mal digitado."
-              value={comentarioCorreccion}
-              onChange={(e) => setComentarioCorreccion(e.target.value)}
-              disabled={finalizando}
-            />
-            <span className={formHint}>Obligatorio - el validador necesita saber qué cambió antes de revisarlo de nuevo.</span>
-          </div>
+        <div className={cn(tarjetaSuave, 'p-4 mb-4')}>
+          <label className={cn(campoRelleno, 'items-start')} htmlFor="comentario-correccion">
+            <span className="flex-1 min-w-0">
+              <span className={cn(campoRellenoEtiqueta, "after:content-['_*'] after:text-danger")}>¿Qué se corrigió?</span>
+              <textarea
+                id="comentario-correccion"
+                className={cn(campoRellenoInput, 'resize-y min-h-20 text-[0.9375rem] font-medium leading-snug')}
+                rows={3}
+                placeholder="Ej. Corregí el número de DNI del administrado, que estaba mal digitado."
+                value={comentarioCorreccion}
+                onChange={(e) => setComentarioCorreccion(e.target.value)}
+                disabled={finalizando}
+              />
+            </span>
+          </label>
+          <p className="text-xs text-text-muted mt-1.5 mb-0 px-1">
+            Obligatorio - el validador necesita saber qué cambió antes de revisarlo de nuevo.
+          </p>
         </div>
       )}
 
@@ -426,13 +403,8 @@ export default function ResumenScreen({
         </div>
       )}
 
-      <div className={actionsFooter}>
-        <button
-          type="button"
-          className={btn('primary', { tamano: 'lg', block: true })}
-          onClick={handleFinalizar}
-          disabled={!puedeEnviar}
-        >
+      <div className="flex flex-col gap-2.5 mt-6">
+        <button type="button" className={btnCampo} onClick={handleFinalizar} disabled={!puedeEnviar}>
           {finalizando ? (
             <span>{modoEdicion ? 'Enviando corrección…' : 'Finalizando intervención…'}</span>
           ) : (

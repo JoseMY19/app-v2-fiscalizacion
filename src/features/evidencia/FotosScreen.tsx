@@ -82,7 +82,7 @@ export default function FotosScreen({ localId, onContinuar, onVolver }: Props) {
 
       <div className={card()}>
         <div className="flex items-center justify-between mb-[1rem]">
-          <span className="font-semibold text-[0.9375rem] text-primary-900">
+          <span className="font-semibold text-[0.9375rem] text-text-title">
             Fotografías adjuntas
           </span>
           <span className={badge(puedeContinuar ? 'success' : 'warning')}>
@@ -95,7 +95,7 @@ export default function FotosScreen({ localId, onContinuar, onVolver }: Props) {
             <label
               className={cn(
                 btn('outline'),
-                'flex! flex-col! items-center! justify-center! py-4! px-2! h-auto! text-center! bg-primary-50!',
+                'flex! flex-col! items-center! justify-center! py-4! px-2! h-auto! text-center! bg-campo-50!',
                 procesando ? 'cursor-not-allowed!' : 'cursor-pointer!',
               )}
             >

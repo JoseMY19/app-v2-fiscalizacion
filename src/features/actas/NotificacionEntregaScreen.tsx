@@ -119,7 +119,7 @@ export default function NotificacionEntregaScreen({ localId, onContinuar, onVolv
             <input
               type="checkbox"
               checked={seNegoFirmar}
-              onChange={(e) => setSeNegoFirmar(e.target.checked)} className="w-[18px] h-[18px] accent-primary-600"
+              onChange={(e) => setSeNegoFirmar(e.target.checked)} className="w-[18px] h-[18px] accent-campo-700"
             />
             <span className={optionCardTitle}>El administrado se negó a firmar y/o recibir el cargo</span>
           </label>
@@ -213,7 +213,7 @@ export default function NotificacionEntregaScreen({ localId, onContinuar, onVolv
 
         {entregadaEnElActo === true && (
           <div className="mt-[1rem] pt-[1rem] border-0 border-t border-solid border-t-border">
-            <h3 className="text-[0.9375rem] mb-[0.75rem] text-primary-900">
+            <h3 className="text-[0.9375rem] mb-[0.75rem] text-text-title">
               Datos del Receptor (si fue persona distinta o adicional)
             </h3>
             <div className={formGroup}>
