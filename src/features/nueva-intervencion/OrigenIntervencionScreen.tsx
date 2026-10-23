@@ -11,16 +11,60 @@ import { actualizarOrigenIntervencion } from './intervenciones.repository';
  *  - no se puede avanzar sin seleccionar un origen
  */
 
+import type { ReactNode } from 'react';
 import WizardHeader from '../../components/WizardHeader';
 import { cn } from '../../lib/cn';
-import { actionsFooter, alerta, appContainer, btn, card, formGroup, formHint, formInput, formLabel, formLabelRequired, optionCard, optionCardContent, optionCardDesc, optionCardTitle, optionRadio, optionRadioDot, optionsGrid } from '../../lib/ui';
+import {
+  alerta,
+  appContainer,
+  btnCampo,
+  campoRelleno,
+  campoRellenoEtiqueta,
+  campoRellenoIcono,
+  campoRellenoInput,
+  opcionCheck,
+  opcionIcono,
+  opcionTarjeta,
+  tarjetaSuave,
+} from '../../lib/ui';
 
-const OPCIONES: { valor: OrigenIntervencion; etiqueta: string; descripcion: string }[] = [
-  { valor: OrigenIntervencion.DENUNCIA, etiqueta: 'Denuncia administrativa', descripcion: 'Por reclamo ciudadano o expediente de mesa de partes' },
-  { valor: OrigenIntervencion.INOPINADA, etiqueta: 'Inspección inopinada', descripcion: 'Patrullaje o fiscalización directa en campo' },
-  { valor: OrigenIntervencion.ORDEN_SUPERIOR, etiqueta: 'Orden superior', descripcion: 'Disposición de Gerencia / Subgerencia de Control Municipal' },
-  { valor: OrigenIntervencion.DOC_EXTERNO, etiqueta: 'Documento externo', descripcion: 'Oficio de PNP, Fiscalía, Defensa Civil u otra entidad' },
-  { valor: OrigenIntervencion.OTROS, etiqueta: 'Otros', descripcion: 'Situación que no encaja en las categorías anteriores' },
+const icono = (contenido: ReactNode) => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    {contenido}
+  </svg>
+);
+
+const OPCIONES: { valor: OrigenIntervencion; etiqueta: string; descripcion: string; icono: ReactNode }[] = [
+  {
+    valor: OrigenIntervencion.DENUNCIA,
+    etiqueta: 'Denuncia administrativa',
+    descripcion: 'Por reclamo ciudadano o expediente de mesa de partes',
+    icono: icono(<><path d="M3 11l18-5v12L3 14v-3z" /><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" /></>),
+  },
+  {
+    valor: OrigenIntervencion.INOPINADA,
+    etiqueta: 'Inspección inopinada',
+    descripcion: 'Patrullaje o fiscalización directa en campo',
+    icono: icono(<><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.35-4.35" /></>),
+  },
+  {
+    valor: OrigenIntervencion.ORDEN_SUPERIOR,
+    etiqueta: 'Orden superior',
+    descripcion: 'Disposición de Gerencia / Subgerencia de Control Municipal',
+    icono: icono(<><path d="M3 21h18M5 21V7l7-4 7 4v14" /><path d="M9 21v-6h6v6" /></>),
+  },
+  {
+    valor: OrigenIntervencion.DOC_EXTERNO,
+    etiqueta: 'Documento externo',
+    descripcion: 'Oficio de PNP, Fiscalía, Defensa Civil u otra entidad',
+    icono: icono(<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></>),
+  },
+  {
+    valor: OrigenIntervencion.OTROS,
+    etiqueta: 'Otros',
+    descripcion: 'Situación que no encaja en las categorías anteriores',
+    icono: icono(<><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></>),
+  },
 ];
 
 interface Props {
@@ -72,48 +116,64 @@ export default function OrigenIntervencionScreen({ localId, onContinuar, onVolve
         deshabilitarVolver={guardando}
       />
 
-      <div className={card()}>
-        <label className={cn(formLabel, formLabelRequired, 'mb-[0.75rem]!')}>
-          ¿Cuál es la procedencia de esta intervención?
-        </label>
+      <div className={cn(tarjetaSuave, 'p-4')}>
+        <p className="text-[0.9375rem] font-bold text-text-title mb-1">¿Cuál es la procedencia de esta intervención?</p>
+        <p className="text-xs text-text-muted mb-3.5">Elige una opción para continuar.</p>
 
-        <div className={optionsGrid}>
+        <div className="flex flex-col gap-2.5" role="radiogroup" aria-label="Procedencia de la intervención">
           {OPCIONES.map((opcion) => {
-            const isSelected = origen === opcion.valor;
+            const seleccionada = origen === opcion.valor;
             return (
-              <div
+              <button
                 key={opcion.valor}
-                className={optionCard(isSelected)}
+                type="button"
+                role="radio"
+                aria-checked={seleccionada}
+                className={opcionTarjeta(seleccionada)}
                 onClick={() => setOrigen(opcion.valor)}
-                role="button"
-                tabIndex={0}
               >
-                <div className={optionRadio(isSelected)}>
-                  <div className={optionRadioDot(isSelected)} />
-                </div>
-                <div className={optionCardContent}>
-                  <div className={optionCardTitle}>{opcion.etiqueta}</div>
-                  <div className={optionCardDesc}>{opcion.descripcion}</div>
-                </div>
-              </div>
+                <span className={opcionIcono(seleccionada)}>{opcion.icono}</span>
+                <span className="flex-1 min-w-0">
+                  <span className={cn('block text-[0.9375rem] font-bold leading-tight', seleccionada ? 'text-campo-800' : 'text-text-title')}>
+                    {opcion.etiqueta}
+                  </span>
+                  <span className="block text-xs text-text-muted mt-0.5 leading-snug">{opcion.descripcion}</span>
+                </span>
+                <span className={opcionCheck(seleccionada)} aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5">
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                </span>
+              </button>
             );
           })}
         </div>
 
         {requiereReferencia && (
-          <div className={cn(formGroup, 'mt-[1.25rem]! mb-0!')}>
-            <label className={cn(formLabel, formLabelRequired)}>
-              Referencia documental (N° de memo, expediente o remitente)
+          <div className="mt-4">
+            <label className={campoRelleno} htmlFor="referencia-origen">
+              <span className={campoRellenoIcono}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                </svg>
+              </span>
+              <span className="flex-1 min-w-0">
+                <span className={cn(campoRellenoEtiqueta, "after:content-['_*'] after:text-danger")}>Referencia documental</span>
+                <input
+                  id="referencia-origen"
+                  type="text"
+                  className={campoRellenoInput}
+                  value={referencia}
+                  onChange={(e) => setReferencia(e.target.value)}
+                  placeholder="Ej. Memo N° 142-2026-SGCM"
+                  autoFocus
+                />
+              </span>
             </label>
-            <input
-              type="text"
-              className={formInput}
-              value={referencia}
-              onChange={(e) => setReferencia(e.target.value)}
-              placeholder="Ej. Memo N° 142-2026-SGCM-GSE/MDSJL"
-              autoFocus
-            />
-            <span className={formHint}>Dato obligatorio para actuaciones derivadas.</span>
+            <p className="text-xs text-text-muted mt-1.5 mb-0 px-1">
+              N° de memo, expediente o remitente. Obligatorio para actuaciones derivadas.
+            </p>
           </div>
         )}
 
@@ -129,19 +189,14 @@ export default function OrigenIntervencionScreen({ localId, onContinuar, onVolve
         )}
       </div>
 
-      <div className={actionsFooter}>
-        <button
-          type="button"
-          className={btn('primary', { tamano: 'lg', block: true })}
-          onClick={handleContinuar}
-          disabled={!puedeContinuar || guardando}
-        >
+      <div className="flex flex-col gap-2.5 mt-6">
+        <button type="button" className={btnCampo} onClick={handleContinuar} disabled={!puedeContinuar || guardando}>
           {guardando ? (
             <span>Guardando…</span>
           ) : (
             <>
               <span>Continuar</span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </>

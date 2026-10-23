@@ -20,16 +20,104 @@ import { consultarLicenciaItse, type ResumenLicenciaItse } from './bases-municip
  *  - queda marcada como "Pendiente de saneamiento" (ver HU-19, resumen)
  */
 
+import type { ReactNode } from 'react';
 import WizardHeader from '../../components/WizardHeader';
 import { cn } from '../../lib/cn';
-import { actionsFooter, alerta, appContainer, btn, card, formGroup, formInput, formLabel, formLabelRequired, formSelect, formTextarea, optionCard, optionCardContent, optionCardDesc, optionCardTitle, optionRadio, optionRadioDot, optionsGrid, saneamientoNotice, saneamientoNoticeDesc, saneamientoNoticeIcon, saneamientoNoticeTitle, sectionLabel, sectionLabelRequired } from '../../lib/ui';
+import {
+  alerta,
+  appContainer,
+  btnCampo,
+  btnCampoSecundario,
+  campoRelleno,
+  campoRellenoEtiqueta,
+  campoRellenoIcono,
+  campoRellenoInput,
+  opcionCheck,
+  opcionIcono,
+  opcionTarjeta,
+  saneamientoNotice,
+  saneamientoNoticeDesc,
+  saneamientoNoticeIcon,
+  saneamientoNoticeTitle,
+  tarjetaSuave,
+} from '../../lib/ui';
 
-const MOTIVOS: { valor: MotivoNoIdentificado; etiqueta: string; desc: string }[] = [
-  { valor: MotivoNoIdentificado.VIA_PUBLICA, etiqueta: 'Vía pública', desc: 'Comercio o actividad realizada en espacio público sin puesto fijo' },
-  { valor: MotivoNoIdentificado.SIN_OCUPANTE, etiqueta: 'Sin ocupante', desc: 'Predio o local cerrado, sin personas que atiendan' },
-  { valor: MotivoNoIdentificado.SE_NEGO, etiqueta: 'Se negó', desc: 'El administrado o encargado rechazó brindar sus datos' },
-  { valor: MotivoNoIdentificado.OTRO, etiqueta: 'Otro motivo', desc: 'Situación excepcional registrada por el fiscalizador' },
+const svg = (contenido: ReactNode) => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    {contenido}
+  </svg>
+);
+
+const MOTIVOS: { valor: MotivoNoIdentificado; etiqueta: string; desc: string; icono: ReactNode }[] = [
+  {
+    valor: MotivoNoIdentificado.VIA_PUBLICA,
+    etiqueta: 'Vía pública',
+    desc: 'Comercio o actividad realizada en espacio público sin puesto fijo',
+    icono: svg(<path d="M4 19L8 5M20 19L16 5M12 6v2M12 11v2M12 16v2" />),
+  },
+  {
+    valor: MotivoNoIdentificado.SIN_OCUPANTE,
+    etiqueta: 'Sin ocupante',
+    desc: 'Predio o local cerrado, sin personas que atiendan',
+    icono: svg(<><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></>),
+  },
+  {
+    valor: MotivoNoIdentificado.SE_NEGO,
+    etiqueta: 'Se negó',
+    desc: 'El administrado o encargado rechazó brindar sus datos',
+    icono: svg(<><circle cx="12" cy="12" r="10" /><path d="M4.93 4.93l14.14 14.14" /></>),
+  },
+  {
+    valor: MotivoNoIdentificado.OTRO,
+    etiqueta: 'Otro motivo',
+    desc: 'Situación excepcional registrada por el fiscalizador',
+    icono: svg(<><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></>),
+  },
 ];
+
+const TIPOS_DOCUMENTO: { valor: TipoDocumentoAdministrado; etiqueta: string }[] = [
+  { valor: 'DNI', etiqueta: 'DNI' },
+  { valor: 'RUC', etiqueta: 'RUC' },
+  { valor: 'OTRO', etiqueta: 'Otro' },
+];
+
+// Selector segmentado: reemplaza al <select>, cuya lista la dibuja el sistema (azul) y no se puede estilar.
+const segmentos = 'flex gap-1 p-1 mb-3 bg-bg-subtle border border-solid border-border rounded-pill';
+function segmento(activo: boolean): string {
+  return cn(
+    'flex-1 py-2 rounded-pill border-none text-sm font-bold cursor-pointer transition-all duration-150',
+    activo
+      ? 'bg-linear-135 from-campo-700 to-campo-900 text-white shadow-[0_4px_10px_-4px_rgba(101,10,64,0.5)]'
+      : 'bg-transparent text-text-muted hover:text-campo-700',
+  );
+}
+const seccionTitulo = 'text-[0.725rem] font-bold uppercase tracking-[0.06em] text-text-muted mb-2.5';
+const requerido = "after:content-['_*'] after:text-danger";
+
+/** Campo relleno con ícono y etiqueta (mismo estilo que el login y los pasos 1-2). */
+function Campo({
+  id,
+  etiqueta,
+  obligatorio,
+  icono,
+  children,
+}: {
+  id: string;
+  etiqueta: string;
+  obligatorio?: boolean;
+  icono: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <label className={cn(campoRelleno, 'mb-3')} htmlFor={id}>
+      <span className={campoRellenoIcono}>{icono}</span>
+      <span className="flex-1 min-w-0">
+        <span className={cn(campoRellenoEtiqueta, obligatorio && requerido)}>{etiqueta}</span>
+        {children}
+      </span>
+    </label>
+  );
+}
 
 interface Props {
   localId: string;
@@ -134,8 +222,8 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
           deshabilitarVolver={guardando}
         />
 
-        <div className={card()}>
-          <div className={saneamientoNotice}>
+        <div className={cn(tarjetaSuave, 'p-4')}>
+          <div className={cn(saneamientoNotice, 'rounded-[14px]')}>
             <div className={saneamientoNoticeIcon}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                 <circle cx="12" cy="12" r="10" />
@@ -151,53 +239,61 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
             </div>
           </div>
 
-          <div className={sectionLabel}>
-            <span>Selecciona el motivo de no identificación</span>
-            <span className={sectionLabelRequired}>*</span>
-          </div>
+          <p className="text-[0.9375rem] font-bold text-text-title mb-3">
+            Motivo de no identificación <span className="text-danger">*</span>
+          </p>
 
-          <div className={optionsGrid}>
+          <div className="flex flex-col gap-2.5" role="radiogroup" aria-label="Motivo de no identificación">
             {MOTIVOS.map((opcion) => {
-              const isSelected = motivo === opcion.valor;
+              const seleccionada = motivo === opcion.valor;
               return (
-                <div
+                <button
                   key={opcion.valor}
-                  className={optionCard(isSelected)}
+                  type="button"
+                  role="radio"
+                  aria-checked={seleccionada}
+                  className={opcionTarjeta(seleccionada)}
                   onClick={() => setMotivo(opcion.valor)}
-                  role="button"
-                  tabIndex={0}
                 >
-                  <div className={optionRadio(isSelected)}>
-                    <div className={optionRadioDot(isSelected)} />
-                  </div>
-                  <div className={optionCardContent}>
-                    <div className={optionCardTitle}>{opcion.etiqueta}</div>
-                    <div className={optionCardDesc}>{opcion.desc}</div>
-                  </div>
-                </div>
+                  <span className={opcionIcono(seleccionada)}>{opcion.icono}</span>
+                  <span className="flex-1 min-w-0">
+                    <span className={cn('block text-[0.9375rem] font-bold leading-tight', seleccionada ? 'text-campo-800' : 'text-text-title')}>
+                      {opcion.etiqueta}
+                    </span>
+                    <span className="block text-xs text-text-muted mt-0.5 leading-snug">{opcion.desc}</span>
+                  </span>
+                  <span className={opcionCheck(seleccionada)} aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5">
+                      <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                  </span>
+                </button>
               );
             })}
           </div>
 
           {motivo === MotivoNoIdentificado.OTRO && (
-            <div className={cn(formGroup, 'mt-[1rem]')}>
-              <label className={cn(formLabel, formLabelRequired)}>Describe el motivo</label>
-              <textarea
-                className={formTextarea}
-                value={motivoDetalle}
-                onChange={(e) => setMotivoDetalle(e.target.value)}
-                maxLength={300}
-                rows={3}
-                placeholder="Qué ocurrió y por qué no se pudo identificar (mínimo 10 caracteres)"
-              />
-            </div>
+            <label className={cn(campoRelleno, 'items-start mt-4')} htmlFor="motivo-detalle">
+              <span className="flex-1 min-w-0">
+                <span className={cn(campoRellenoEtiqueta, requerido)}>Describe el motivo</span>
+                <textarea
+                  id="motivo-detalle"
+                  className={cn(campoRellenoInput, 'resize-y min-h-20 text-[0.9375rem] font-medium leading-snug')}
+                  value={motivoDetalle}
+                  onChange={(e) => setMotivoDetalle(e.target.value)}
+                  maxLength={300}
+                  rows={3}
+                  placeholder="Qué ocurrió y por qué no se pudo identificar (mínimo 10 caracteres)"
+                />
+              </span>
+            </label>
           )}
         </div>
 
-        <div className={actionsFooter}>
+        <div className="flex flex-col gap-2.5 mt-6">
           <button
             type="button"
-            className={btn('primary', { tamano: 'lg', block: true })}
+            className={btnCampo}
             onClick={handleConfirmarNoIdentificado}
             disabled={!motivo || !detalleCompleto || guardando}
           >
@@ -205,11 +301,14 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
           </button>
           <button
             type="button"
-            className={btn('outline', { block: true })}
+            className={btnCampoSecundario}
             onClick={() => setMostrandoNoIdentificado(false)}
             disabled={guardando}
           >
-            ← Volver a identificar al administrado
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            <span>Volver a identificar al administrado</span>
           </button>
         </div>
       </div>
@@ -227,38 +326,45 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
         deshabilitarVolver={guardando}
       />
 
-      <div className={card()}>
-        <div className="grid grid-cols-[120px_1fr] gap-[0.75rem]">
-          <div className={formGroup}>
-            <label className={cn(formLabel, formLabelRequired)}>Tipo doc.</label>
-            <select
-              className={formSelect}
-              value={tipoDocumento}
-              onChange={(e) => setTipoDocumento(e.target.value as TipoDocumentoAdministrado)}
+      <div className={cn(tarjetaSuave, 'p-4')}>
+        <div className={seccionTitulo}>Documento de identidad</div>
+        <div className={segmentos} role="radiogroup" aria-label="Tipo de documento">
+          {TIPOS_DOCUMENTO.map((tipo) => (
+            <button
+              key={tipo.valor}
+              type="button"
+              role="radio"
+              aria-checked={tipoDocumento === tipo.valor}
+              className={segmento(tipoDocumento === tipo.valor)}
+              onClick={() => setTipoDocumento(tipo.valor)}
             >
-              <option value="DNI">DNI</option>
-              <option value="RUC">RUC</option>
-              <option value="OTRO">Otro</option>
-            </select>
-          </div>
-
-          <div className={formGroup}>
-            <label className={cn(formLabel, formLabelRequired)}>N° de documento</label>
-            <input
-              type="text"
-              className={formInput}
-              value={numeroDocumento}
-              onChange={(e) => setNumeroDocumento(e.target.value)}
-              placeholder="N° de identidad"
-            />
-          </div>
+              {tipo.etiqueta}
+            </button>
+          ))}
         </div>
 
+        <Campo
+          id="numero-documento"
+          etiqueta={tipoDocumento === 'OTRO' ? 'N° de documento' : `N° de ${tipoDocumento}`}
+          obligatorio
+          icono={svg(<><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="2" /><line x1="15" y1="8" x2="17" y2="8" /><line x1="15" y1="12" x2="17" y2="12" /><line x1="7" y1="16" x2="17" y2="16" /></>)}
+        >
+          <input
+            id="numero-documento"
+            type="text"
+            inputMode={tipoDocumento === 'OTRO' ? 'text' : 'numeric'}
+            className={campoRellenoInput}
+            value={numeroDocumento}
+            onChange={(e) => setNumeroDocumento(e.target.value)}
+            placeholder={tipoDocumento === 'RUC' ? '11 dígitos' : tipoDocumento === 'DNI' ? '8 dígitos' : 'N° de identidad'}
+          />
+        </Campo>
+
         {numeroDocumento.trim().length >= 8 && (
-          <div className="mb-[1rem]">
+          <div className="mb-4">
             <button
               type="button"
-              className={btn('secondary', { block: true })}
+              className={cn(btnCampoSecundario, 'min-h-11 text-sm')}
               disabled={consultando}
               onClick={async () => {
                 setConsultando(true);
@@ -267,11 +373,24 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
                 setConsultando(false);
               }}
             >
-              {consultando ? 'Consultando…' : 'Consultar licencia e ITSE (requiere conexión)'}
+              {consultando ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="animate-spin">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M21 21l-4.35-4.35" />
+                </svg>
+              )}
+              <span>{consultando ? 'Consultando…' : 'Consultar licencia e ITSE'}</span>
             </button>
-            {consulta === 'sin-datos' && <div className="text-[0.8rem] text-text-muted mt-[0.4rem]">No se pudo consultar (sin conexión). Puedes continuar.</div>}
+            <p className="text-[0.6875rem] text-text-light text-center mt-1 mb-0">Requiere conexión · no bloquea el registro</p>
+            {consulta === 'sin-datos' && (
+              <div className="text-[0.8rem] text-text-muted mt-[0.4rem]">No se pudo consultar (sin conexión). Puedes continuar.</div>
+            )}
             {consulta && consulta !== 'sin-datos' && (
-              <div className="mt-[0.5rem] rounded-[10px] border border-border bg-bg-subtle p-[0.75rem] text-[0.85rem] flex flex-col gap-[0.25rem]">
+              <div className="mt-2 rounded-[14px] border border-solid border-campo-100 bg-campo-50 p-3 text-[0.8125rem] text-text-body flex flex-col gap-1">
                 <div>
                   <strong>Licencia:</strong> {consulta.tieneLicenciaVigente ? 'vigente' : consulta.licencia ? 'no vigente' : 'no registra'}
                   {consulta.licencia ? ` · N° ${consulta.licencia.numero ?? '—'} · ${consulta.licencia.giro ?? ''}${consulta.licencia.horario ? ` · ${consulta.licencia.horario}` : ''}` : ''}
@@ -281,71 +400,96 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
                   {consulta.riesgo ? ` · riesgo ${consulta.riesgo}` : ''}
                   {consulta.itse?.caduca ? ` · caduca ${consulta.itse.caduca.slice(0, 10).split('-').reverse().join('/')}` : ''}
                 </div>
-                {consulta.sugerenciaCuis && <div className="text-[#9a3412]">Código sugerido: {consulta.sugerenciaCuis}. Tú decides.</div>}
+                {consulta.sugerenciaCuis && (
+                  <div className="text-campo-700 font-semibold">Código sugerido: {consulta.sugerenciaCuis}. Tú decides.</div>
+                )}
               </div>
             )}
           </div>
         )}
 
-        <div className={formGroup}>
-          <label className={cn(formLabel, formLabelRequired)}>Nombres / Razón social</label>
+        <div className={cn(seccionTitulo, 'mt-2')}>Datos del intervenido</div>
+        <Campo
+          id="nombres-razon-social"
+          etiqueta="Nombres / Razón social"
+          obligatorio
+          icono={svg(<><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></>)}
+        >
           <input
+            id="nombres-razon-social"
             type="text"
-            className={formInput}
+            className={campoRellenoInput}
             value={nombresRazonSocial}
             onChange={(e) => setNombresRazonSocial(e.target.value)}
-            placeholder="Nombre completo o razón social comercial"
+            placeholder="Nombre completo o razón social"
           />
-        </div>
+        </Campo>
 
-        <div className={formGroup}>
-          <label className={cn(formLabel, formLabelRequired)}>Domicilio intervenido</label>
+        <Campo
+          id="domicilio"
+          etiqueta="Domicilio intervenido"
+          obligatorio
+          icono={svg(<><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></>)}
+        >
           <input
+            id="domicilio"
             type="text"
-            className={formInput}
+            className={campoRellenoInput}
             value={domicilio}
             onChange={(e) => setDomicilio(e.target.value)}
             placeholder="Av., Jr., Calle, N° o Mz. Lt."
           />
-        </div>
+        </Campo>
 
-        <div className="grid grid-cols-[1fr_1fr] gap-[0.75rem]">
-          <div className={formGroup}>
-            <label className={cn(formLabel, formLabelRequired)}>Distrito</label>
-            <input
-              type="text"
-              className={formInput}
-              value={distrito}
-              onChange={(e) => setDistrito(e.target.value)}
-              placeholder="San Juan de Lurigancho"
-            />
-          </div>
-
-          <div className={formGroup}>
-            <label className={cn(formLabel, formLabelRequired)}>Giro / Actividad</label>
-            <input
-              type="text"
-              className={formInput}
-              value={giroUso}
-              onChange={(e) => setGiroUso(e.target.value)}
-              placeholder="Bodega, Taller, etc."
-            />
-          </div>
-        </div>
-
-        <div className={cn(formGroup, 'mb-0!')}>
-          <label className={formLabel}>N° Licencia de funcionamiento (opcional)</label>
+        <Campo
+          id="distrito"
+          etiqueta="Distrito"
+          obligatorio
+          icono={svg(<><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></>)}
+        >
           <input
+            id="distrito"
             type="text"
-            className={formInput}
+            className={campoRellenoInput}
+            value={distrito}
+            onChange={(e) => setDistrito(e.target.value)}
+            placeholder="San Juan de Lurigancho"
+          />
+        </Campo>
+
+        <Campo
+          id="giro-uso"
+          etiqueta="Giro / Actividad"
+          obligatorio
+          icono={svg(<><path d="M3 9l1-5h16l1 5" /><path d="M4 9v11h16V9" /><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" /></>)}
+        >
+          <input
+            id="giro-uso"
+            type="text"
+            className={campoRellenoInput}
+            value={giroUso}
+            onChange={(e) => setGiroUso(e.target.value)}
+            placeholder="Bodega, Taller, etc."
+          />
+        </Campo>
+
+        <Campo
+          id="licencia-funcionamiento"
+          etiqueta="N° Licencia de funcionamiento (opcional)"
+          icono={svg(<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><path d="M9 15l2 2 4-4" /></>)}
+        >
+          <input
+            id="licencia-funcionamiento"
+            type="text"
+            className={campoRellenoInput}
             value={numeroLicenciaFuncionamiento}
             onChange={(e) => setNumeroLicenciaFuncionamiento(e.target.value)}
-            placeholder="N° de licencia municipal si la exhibe"
+            placeholder="Si la exhibe"
           />
-        </div>
+        </Campo>
 
         {error && (
-          <div className={cn(alerta('error'), 'mt-[1rem]! mb-0!')} role="alert">
+          <div className={cn(alerta('error'), 'rounded-[14px] mt-1 mb-0!')} role="alert">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
@@ -356,19 +500,14 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
         )}
       </div>
 
-      <div className={actionsFooter}>
-        <button
-          type="button"
-          className={btn('primary', { tamano: 'lg', block: true })}
-          onClick={handleGuardar}
-          disabled={guardando}
-        >
+      <div className="flex flex-col gap-2.5 mt-6">
+        <button type="button" className={btnCampo} onClick={handleGuardar} disabled={guardando}>
           {guardando ? (
             <span>Guardando…</span>
           ) : (
             <>
               <span>Guardar Administrado</span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </>
@@ -377,7 +516,7 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
 
         <button
           type="button"
-          className={btn('secondary', { block: true })}
+          className={btnCampoSecundario}
           onClick={() => setMostrandoNoIdentificado(true)}
           disabled={guardando}
         >
