@@ -95,7 +95,7 @@ export default function TestigosScreen({ localId, onContinuar, onVolver }: Props
         <p className="text-[0.8125rem] text-text-muted mt-0 mb-[1rem]">
           Si el administrado firma, no hace falta testigo. Puedes continuar sin registrar ninguno.
         </p>
-        <h3 className="text-[0.9375rem] mb-[0.5rem] text-primary-900">
+        <h3 className="text-[0.9375rem] mb-[0.5rem] text-text-title">
           Testigo 1 (Opcional)
         </h3>
         <div className="grid grid-cols-[1fr_140px] gap-[0.625rem]">
@@ -127,7 +127,7 @@ export default function TestigosScreen({ localId, onContinuar, onVolver }: Props
           </p>
         )}
 
-        <h3 className="text-[0.9375rem] mt-[1rem] mb-[0.5rem] text-primary-900">
+        <h3 className="text-[0.9375rem] mt-[1rem] mb-[0.5rem] text-text-title">
           Testigo 2 (Opcional)
         </h3>
         <div className="grid grid-cols-[1fr_140px] gap-[0.625rem]">
