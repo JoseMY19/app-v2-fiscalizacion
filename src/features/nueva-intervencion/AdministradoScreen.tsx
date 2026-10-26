@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MotivoNoIdentificado } from '@pas-sjl/shared-types';
 import { db } from '../../lib/db';
 import { guardarAdministrado, marcarAdministradoNoIdentificado } from './administrado.repository';
 import { validarNumeroDocumento, type TipoDocumentoAdministrado } from './validacion-documento';
 import { consultarLicenciaItse, type ResumenLicenciaItse } from './bases-municipales.repository';
+import { consultarNombrePorDni } from './dni-nombre.repository';
 
 /**
  * HU-04 — Registrar datos del administrado.
@@ -146,10 +147,72 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
   const [consulta, setConsulta] = useState<ResumenLicenciaItse | null | 'sin-datos'>(null);
   const [consultando, setConsultando] = useState(false);
 
+  // Nombre a partir del DNI (solo el nombre; nunca bloquea: si no hay conexión se escribe como siempre).
+  const [estadoNombre, setEstadoNombre] = useState<'idle' | 'consultando' | 'completado' | 'no-encontrado' | 'sin-servicio'>('idle');
+  const nombreAutocompletado = useRef<string | null>(null);
+  const nombreActual = useRef('');
+  nombreActual.current = nombresRazonSocial;
+
+  useEffect(() => {
+    // Un nombre que se completó solo es de ESE DNI: si el DNI cambia, se quita para no dejar el de otra persona.
+    const quitarSiEraAutomatico = () => {
+      const escrito = nombreActual.current.trim();
+      if (escrito && escrito === nombreAutocompletado.current) setNombresRazonSocial('');
+      nombreAutocompletado.current = null;
+    };
+    const dni = numeroDocumento.trim();
+    if (tipoDocumento !== 'DNI' || !/^\d{8}$/.test(dni)) {
+      quitarSiEraAutomatico();
+      setEstadoNombre('idle');
+      return;
+    }
+    const escrito = nombreActual.current.trim();
+    // Si el fiscalizador ya escribió un nombre (o se precargó uno guardado), no se consulta ni se le pisa.
+    if (escrito && escrito !== nombreAutocompletado.current) {
+      setEstadoNombre('idle');
+      return;
+    }
+    quitarSiEraAutomatico();
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      setEstadoNombre('sin-servicio');
+      return;
+    }
+    let cancelado = false;
+    setEstadoNombre('consultando');
+    consultarNombrePorDni(dni).then((r) => {
+      if (cancelado) return;
+      if (r.estado !== 'ok') {
+        setEstadoNombre(r.estado);
+        return;
+      }
+      // Si mientras tanto escribió otro nombre, no se le pisa.
+      if (nombreActual.current.trim()) {
+        setEstadoNombre('idle');
+        return;
+      }
+      nombreAutocompletado.current = r.nombreCompleto;
+      setNombresRazonSocial(r.nombreCompleto);
+      setEstadoNombre('completado');
+    });
+    return () => {
+      cancelado = true;
+    };
+  }, [tipoDocumento, numeroDocumento]);
+
+  // La dirección de la intervención ya se capturó al iniciar: sirve de punto de partida del domicilio intervenido.
+  const [domicilioDeLaIntervencion, setDomicilioDeLaIntervencion] = useState(false);
+
   // HU-19: precarga lo ya guardado, sea el camino identificado o no-identificado.
   useEffect(() => {
-    db.administrados.get(localId).then((administrado) => {
-      if (!administrado) return;
+    Promise.all([db.administrados.get(localId), db.intervenciones.get(localId)]).then(([administrado, intervencion]) => {
+      const ubicacion = intervencion?.direccionAproximada?.trim() ?? '';
+      if (!administrado) {
+        if (ubicacion) {
+          setDomicilio(ubicacion);
+          setDomicilioDeLaIntervencion(true);
+        }
+        return;
+      }
       if (!administrado.identificado) {
         setMostrandoNoIdentificado(true);
         if (administrado.motivoNoIdentificado) setMotivo(administrado.motivoNoIdentificado);
@@ -159,7 +222,12 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
       setTipoDocumento((administrado.tipoDocumento as TipoDocumentoAdministrado) ?? 'DNI');
       setNumeroDocumento(administrado.numeroDocumento ?? '');
       setNombresRazonSocial(administrado.nombresRazonSocial ?? '');
-      setDomicilio(administrado.domicilio ?? '');
+      if (administrado.domicilio) {
+        setDomicilio(administrado.domicilio);
+      } else if (ubicacion) {
+        setDomicilio(ubicacion);
+        setDomicilioDeLaIntervencion(true);
+      }
       setDistrito(administrado.distrito || 'San Juan de Lurigancho');
       setGiroUso(administrado.giroUso ?? '');
       setNumeroLicenciaFuncionamiento(administrado.numeroLicenciaFuncionamiento ?? '');
@@ -360,6 +428,15 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
           />
         </Campo>
 
+        {estadoNombre !== 'idle' && (
+          <p className="text-[0.75rem] text-text-light -mt-2 mb-3">
+            {estadoNombre === 'consultando' && 'Buscando el nombre…'}
+            {estadoNombre === 'completado' && 'Nombre completado desde RENIEC. Verifícalo con el documento y corrígelo si hace falta.'}
+            {estadoNombre === 'no-encontrado' && 'No se encontró ese DNI. Escribe el nombre.'}
+            {estadoNombre === 'sin-servicio' && 'Sin conexión para buscar el nombre. Escríbelo.'}
+          </p>
+        )}
+
         {numeroDocumento.trim().length >= 8 && (
           <div className="mb-4">
             <button
@@ -436,10 +513,16 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
             type="text"
             className={campoRellenoInput}
             value={domicilio}
-            onChange={(e) => setDomicilio(e.target.value)}
+            onChange={(e) => {
+              setDomicilio(e.target.value);
+              setDomicilioDeLaIntervencion(false);
+            }}
             placeholder="Av., Jr., Calle, N° o Mz. Lt."
           />
         </Campo>
+        {domicilioDeLaIntervencion && (
+          <p className="text-[0.75rem] text-text-light -mt-2 mb-3">Se llenó con la dirección de la intervención. Cámbiala si el domicilio es otro.</p>
+        )}
 
         <Campo
           id="distrito"
