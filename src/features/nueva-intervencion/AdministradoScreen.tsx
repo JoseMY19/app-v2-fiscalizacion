@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { MotivoNoIdentificado } from '@pas-sjl/shared-types';
 import { db } from '../../lib/db';
 import { guardarAdministrado, marcarAdministradoNoIdentificado } from './administrado.repository';
@@ -97,6 +97,47 @@ const seccionTitulo = 'text-[0.725rem] font-bold uppercase tracking-[0.06em] tex
 const requerido = "after:content-['_*'] after:text-danger";
 
 /** Campo relleno con ícono y etiqueta (mismo estilo que el login y los pasos 1-2). */
+/**
+ * Texto de una sola idea que puede no caber en una línea (nombres largos de
+ * RENIEC, direcciones): crece hacia abajo en vez de cortarse. Enter no
+ * inserta saltos de línea, para que el dato se guarde igual que un input.
+ */
+function TextoAutoajustable({
+  id,
+  value,
+  onChange,
+  placeholder,
+}: {
+  id: string;
+  value: string;
+  onChange: (valor: string) => void;
+  placeholder?: string;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  useLayoutEffect(() => {
+    const area = ref.current;
+    if (!area) return;
+    area.style.height = 'auto';
+    area.style.height = `${area.scrollHeight}px`;
+  }, [value]);
+
+  return (
+    <textarea
+      ref={ref}
+      id={id}
+      rows={1}
+      className={cn(campoRellenoInput, 'block resize-none overflow-hidden leading-snug break-words')}
+      value={value}
+      onChange={(e) => onChange(e.target.value.replace(/\s*\n\s*/g, ' '))}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.preventDefault();
+      }}
+      placeholder={placeholder}
+    />
+  );
+}
+
 function Campo({
   id,
   etiqueta,
@@ -497,12 +538,10 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
           obligatorio
           icono={svg(<><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></>)}
         >
-          <input
+          <TextoAutoajustable
             id="nombres-razon-social"
-            type="text"
-            className={campoRellenoInput}
             value={nombresRazonSocial}
-            onChange={(e) => setNombresRazonSocial(e.target.value)}
+            onChange={setNombresRazonSocial}
             placeholder="Nombre completo o razón social"
           />
         </Campo>
@@ -513,13 +552,11 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
           obligatorio
           icono={svg(<><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></>)}
         >
-          <input
+          <TextoAutoajustable
             id="domicilio"
-            type="text"
-            className={campoRellenoInput}
             value={domicilio}
-            onChange={(e) => {
-              setDomicilio(e.target.value);
+            onChange={(valor) => {
+              setDomicilio(valor);
               setDomicilioDeLaIntervencion(false);
             }}
             placeholder="Av., Jr., Calle, N° o Mz. Lt."
