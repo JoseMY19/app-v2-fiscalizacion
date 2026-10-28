@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { MotivoNoIdentificado } from '@pas-sjl/shared-types';
 import { db } from '../../lib/db';
 import { guardarAdministrado, marcarAdministradoNoIdentificado } from './administrado.repository';
 import { validarNumeroDocumento, type TipoDocumentoAdministrado } from './validacion-documento';
 import { consultarLicenciaItse, type ResumenLicenciaItse } from './bases-municipales.repository';
+import { consultarNombrePorDni } from './dni-nombre.repository';
 
 /**
  * HU-04 — Registrar datos del administrado.
@@ -22,6 +23,7 @@ import { consultarLicenciaItse, type ResumenLicenciaItse } from './bases-municip
 
 import type { ReactNode } from 'react';
 import WizardHeader from '../../components/WizardHeader';
+import FotoDniAmpliable from '../../components/FotoDniAmpliable';
 import { cn } from '../../lib/cn';
 import {
   alerta,
@@ -95,6 +97,47 @@ const seccionTitulo = 'text-[0.725rem] font-bold uppercase tracking-[0.06em] tex
 const requerido = "after:content-['_*'] after:text-danger";
 
 /** Campo relleno con ícono y etiqueta (mismo estilo que el login y los pasos 1-2). */
+/**
+ * Texto de una sola idea que puede no caber en una línea (nombres largos de
+ * RENIEC, direcciones): crece hacia abajo en vez de cortarse. Enter no
+ * inserta saltos de línea, para que el dato se guarde igual que un input.
+ */
+function TextoAutoajustable({
+  id,
+  value,
+  onChange,
+  placeholder,
+}: {
+  id: string;
+  value: string;
+  onChange: (valor: string) => void;
+  placeholder?: string;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  useLayoutEffect(() => {
+    const area = ref.current;
+    if (!area) return;
+    area.style.height = 'auto';
+    area.style.height = `${area.scrollHeight}px`;
+  }, [value]);
+
+  return (
+    <textarea
+      ref={ref}
+      id={id}
+      rows={1}
+      className={cn(campoRellenoInput, 'block resize-none overflow-hidden leading-snug break-words')}
+      value={value}
+      onChange={(e) => onChange(e.target.value.replace(/\s*\n\s*/g, ' '))}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.preventDefault();
+      }}
+      placeholder={placeholder}
+    />
+  );
+}
+
 function Campo({
   id,
   etiqueta,
@@ -146,10 +189,74 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
   const [consulta, setConsulta] = useState<ResumenLicenciaItse | null | 'sin-datos'>(null);
   const [consultando, setConsultando] = useState(false);
 
+  // Nombre a partir del DNI (solo el nombre; nunca bloquea: si no hay conexión se escribe como siempre).
+  const [estadoNombre, setEstadoNombre] = useState<'idle' | 'consultando' | 'completado' | 'no-encontrado' | 'sin-servicio'>('idle');
+  // Foto oficial del DNI: solo para comprobar a la persona en el sitio. No se guarda ni se sincroniza.
+  const [fotoDni, setFotoDni] = useState<string | null>(null);
+  const nombreAutocompletado = useRef<string | null>(null);
+  const nombreActual = useRef('');
+  nombreActual.current = nombresRazonSocial;
+
+  useEffect(() => {
+    // Un nombre que se completó solo es de ESE DNI: si el DNI cambia, se quita para no dejar el de otra persona.
+    const quitarSiEraAutomatico = () => {
+      const escrito = nombreActual.current.trim();
+      if (escrito && escrito === nombreAutocompletado.current) setNombresRazonSocial('');
+      nombreAutocompletado.current = null;
+    };
+    const dni = numeroDocumento.trim();
+    if (tipoDocumento !== 'DNI' || !/^\d{8}$/.test(dni)) {
+      quitarSiEraAutomatico();
+      setEstadoNombre('idle');
+      setFotoDni(null);
+      return;
+    }
+    const escrito = nombreActual.current.trim();
+    // Si el fiscalizador ya escribió un nombre (o se precargó uno guardado), no se le pisa: solo se trae la foto.
+    const respetarNombre = !!escrito && escrito !== nombreAutocompletado.current;
+    if (!respetarNombre) quitarSiEraAutomatico();
+    setFotoDni(null);
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      setEstadoNombre(respetarNombre ? 'idle' : 'sin-servicio');
+      return;
+    }
+    let cancelado = false;
+    setEstadoNombre(respetarNombre ? 'idle' : 'consultando');
+    consultarNombrePorDni(dni).then((r) => {
+      if (cancelado) return;
+      if (r.estado !== 'ok') {
+        setEstadoNombre(respetarNombre ? 'idle' : r.estado);
+        return;
+      }
+      setFotoDni(r.foto);
+      // Si ya había un nombre (o mientras tanto escribió otro), no se le pisa.
+      if (respetarNombre || nombreActual.current.trim()) {
+        setEstadoNombre('idle');
+        return;
+      }
+      nombreAutocompletado.current = r.nombreCompleto;
+      setNombresRazonSocial(r.nombreCompleto);
+      setEstadoNombre('completado');
+    });
+    return () => {
+      cancelado = true;
+    };
+  }, [tipoDocumento, numeroDocumento]);
+
+  // La dirección de la intervención ya se capturó al iniciar: sirve de punto de partida del domicilio intervenido.
+  const [domicilioDeLaIntervencion, setDomicilioDeLaIntervencion] = useState(false);
+
   // HU-19: precarga lo ya guardado, sea el camino identificado o no-identificado.
   useEffect(() => {
-    db.administrados.get(localId).then((administrado) => {
-      if (!administrado) return;
+    Promise.all([db.administrados.get(localId), db.intervenciones.get(localId)]).then(([administrado, intervencion]) => {
+      const ubicacion = intervencion?.direccionAproximada?.trim() ?? '';
+      if (!administrado) {
+        if (ubicacion) {
+          setDomicilio(ubicacion);
+          setDomicilioDeLaIntervencion(true);
+        }
+        return;
+      }
       if (!administrado.identificado) {
         setMostrandoNoIdentificado(true);
         if (administrado.motivoNoIdentificado) setMotivo(administrado.motivoNoIdentificado);
@@ -159,7 +266,12 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
       setTipoDocumento((administrado.tipoDocumento as TipoDocumentoAdministrado) ?? 'DNI');
       setNumeroDocumento(administrado.numeroDocumento ?? '');
       setNombresRazonSocial(administrado.nombresRazonSocial ?? '');
-      setDomicilio(administrado.domicilio ?? '');
+      if (administrado.domicilio) {
+        setDomicilio(administrado.domicilio);
+      } else if (ubicacion) {
+        setDomicilio(ubicacion);
+        setDomicilioDeLaIntervencion(true);
+      }
       setDistrito(administrado.distrito || 'San Juan de Lurigancho');
       setGiroUso(administrado.giroUso ?? '');
       setNumeroLicenciaFuncionamiento(administrado.numeroLicenciaFuncionamiento ?? '');
@@ -360,6 +472,17 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
           />
         </Campo>
 
+        {estadoNombre !== 'idle' && (
+          <p className="text-[0.75rem] text-text-light -mt-2 mb-3">
+            {estadoNombre === 'consultando' && 'Buscando el nombre…'}
+            {estadoNombre === 'completado' && 'Nombre completado desde RENIEC. Verifícalo con el documento y corrígelo si hace falta.'}
+            {estadoNombre === 'no-encontrado' && 'No se encontró ese DNI. Escribe el nombre.'}
+            {estadoNombre === 'sin-servicio' && 'Sin conexión para buscar el nombre. Escríbelo.'}
+          </p>
+        )}
+
+        {fotoDni && <FotoDniAmpliable foto={fotoDni} />}
+
         {numeroDocumento.trim().length >= 8 && (
           <div className="mb-4">
             <button
@@ -415,12 +538,10 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
           obligatorio
           icono={svg(<><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></>)}
         >
-          <input
+          <TextoAutoajustable
             id="nombres-razon-social"
-            type="text"
-            className={campoRellenoInput}
             value={nombresRazonSocial}
-            onChange={(e) => setNombresRazonSocial(e.target.value)}
+            onChange={setNombresRazonSocial}
             placeholder="Nombre completo o razón social"
           />
         </Campo>
@@ -431,15 +552,19 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
           obligatorio
           icono={svg(<><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></>)}
         >
-          <input
+          <TextoAutoajustable
             id="domicilio"
-            type="text"
-            className={campoRellenoInput}
             value={domicilio}
-            onChange={(e) => setDomicilio(e.target.value)}
+            onChange={(valor) => {
+              setDomicilio(valor);
+              setDomicilioDeLaIntervencion(false);
+            }}
             placeholder="Av., Jr., Calle, N° o Mz. Lt."
           />
         </Campo>
+        {domicilioDeLaIntervencion && (
+          <p className="text-[0.75rem] text-text-light -mt-2 mb-3">Se llenó con la dirección de la intervención. Cámbiala si el domicilio es otro.</p>
+        )}
 
         <Campo
           id="distrito"
