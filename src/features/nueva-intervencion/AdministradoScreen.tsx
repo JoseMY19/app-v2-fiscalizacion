@@ -23,6 +23,7 @@ import { consultarNombrePorDni } from './dni-nombre.repository';
 
 import type { ReactNode } from 'react';
 import WizardHeader from '../../components/WizardHeader';
+import FotoDniAmpliable from '../../components/FotoDniAmpliable';
 import { cn } from '../../lib/cn';
 import {
   alerta,
@@ -149,6 +150,8 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
 
   // Nombre a partir del DNI (solo el nombre; nunca bloquea: si no hay conexión se escribe como siempre).
   const [estadoNombre, setEstadoNombre] = useState<'idle' | 'consultando' | 'completado' | 'no-encontrado' | 'sin-servicio'>('idle');
+  // Foto oficial del DNI: solo para comprobar a la persona en el sitio. No se guarda ni se sincroniza.
+  const [fotoDni, setFotoDni] = useState<string | null>(null);
   const nombreAutocompletado = useRef<string | null>(null);
   const nombreActual = useRef('');
   nombreActual.current = nombresRazonSocial;
@@ -164,29 +167,29 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
     if (tipoDocumento !== 'DNI' || !/^\d{8}$/.test(dni)) {
       quitarSiEraAutomatico();
       setEstadoNombre('idle');
+      setFotoDni(null);
       return;
     }
     const escrito = nombreActual.current.trim();
-    // Si el fiscalizador ya escribió un nombre (o se precargó uno guardado), no se consulta ni se le pisa.
-    if (escrito && escrito !== nombreAutocompletado.current) {
-      setEstadoNombre('idle');
-      return;
-    }
-    quitarSiEraAutomatico();
+    // Si el fiscalizador ya escribió un nombre (o se precargó uno guardado), no se le pisa: solo se trae la foto.
+    const respetarNombre = !!escrito && escrito !== nombreAutocompletado.current;
+    if (!respetarNombre) quitarSiEraAutomatico();
+    setFotoDni(null);
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-      setEstadoNombre('sin-servicio');
+      setEstadoNombre(respetarNombre ? 'idle' : 'sin-servicio');
       return;
     }
     let cancelado = false;
-    setEstadoNombre('consultando');
+    setEstadoNombre(respetarNombre ? 'idle' : 'consultando');
     consultarNombrePorDni(dni).then((r) => {
       if (cancelado) return;
       if (r.estado !== 'ok') {
-        setEstadoNombre(r.estado);
+        setEstadoNombre(respetarNombre ? 'idle' : r.estado);
         return;
       }
-      // Si mientras tanto escribió otro nombre, no se le pisa.
-      if (nombreActual.current.trim()) {
+      setFotoDni(r.foto);
+      // Si ya había un nombre (o mientras tanto escribió otro), no se le pisa.
+      if (respetarNombre || nombreActual.current.trim()) {
         setEstadoNombre('idle');
         return;
       }
@@ -436,6 +439,8 @@ export default function AdministradoScreen({ localId, onFinalizar, onVolver }: P
             {estadoNombre === 'sin-servicio' && 'Sin conexión para buscar el nombre. Escríbelo.'}
           </p>
         )}
+
+        {fotoDni && <FotoDniAmpliable foto={fotoDni} />}
 
         {numeroDocumento.trim().length >= 8 && (
           <div className="mb-4">
